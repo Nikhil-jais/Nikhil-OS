@@ -1,31 +1,14 @@
-// ==================== AUDIO ====================
+// ==================== BACKGROUND MUSIC ====================
 
 const bgMusic = new Audio("assets/audio/music.mp3");
+
 bgMusic.loop = true;
 bgMusic.volume = 0.35;
 
-const clickSound = new Audio("assets/audio/click.mp3");
-const successSound = new Audio("assets/audio/success.mp3");
-const failSound = new Audio("assets/audio/fail.mp3");
-
-function playMusic() {
+// Start music after the player's first click
+document.addEventListener("click", () => {
     bgMusic.play().catch(() => {});
-}
-
-function playClick() {
-    clickSound.currentTime = 0;
-    clickSound.play().catch(() => {});
-}
-
-function playSuccess() {
-    successSound.currentTime = 0;
-    successSound.play().catch(() => {});
-}
-
-function playFail() {
-    failSound.currentTime = 0;
-    failSound.play().catch(() => {});
-}
+}, { once: true });
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
