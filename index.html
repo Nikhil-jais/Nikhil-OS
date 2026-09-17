@@ -1,1 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#ff7fb4">
+<title>NikhilOS — Little Universe</title>
+<link rel="stylesheet" href="style.css">
+</head>
 
+<audio id="musicTest" controls loop>
+    <source src="assets/audio/music.mp3" type="audio/mpeg">
+</audio>
+<body>
+
+<div id="bootScreen" class="boot-screen"> 
+    <div class="boot-stars">
+        <span>✦</span>
+        <span>✧</span>
+        <span>✨</span>
+    </div>
+
+    <div class="boot-mascot">🐱</div>
+
+    <div class="boot-title">
+        <h1>NikhilOS</h1> 
+        <p>Preparing your little universe...</p>
+        <div class="loading-line">
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<div id="desktop" class="desktop">
+
+    <div class="sky"></div>
+
+    <div class="sun"></div>
+    <div class="moon"></div>
+
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>     
+    <div class="cloud cloud3"></div>
+
+    <div class="mountains"></div>
+
+    <div class="city">
+        <div class="building building1"></div>
+        <div class="building building2"></div>
+        <div class="building building3"></div>
+        <div class="building building4"></div>
+        <div class="building building5"></div>
+        <div class="building building6"></div>
+        <div class="building building7"></div>
+        <div class="building building8"></div>
+    </div>
+
+    <div class="street"></div>
+    <div class="trees"></div>
+
+    <div id="animalLayer"></div>
+    <div id="particleLayer"></div>
+
+    <header class="topbar glass">
+
+        <div class="brand">
+            <div class="brand-logo">N</div>
+
+            <div>
+                <strong>NikhilOS</strong>
+                <small>Little  Universe</small>
+            </div>
+        </div>
+
+        <div class="mood" id="moodText">
+            ☀️ Happy little day
+        </div>
+
+        <div class="system-info">
+            <span id="clock">00:00</span>
+            <span>⌁ Wi-Fi</span>
+            <span>▰ 100%</span>
+            <button id="topSettings">⚙️</button>    
+        </div>
+
+    </header>
+
+    <section class="welcome glass">
+
+        <div class="welcome-content">
+
+            <span class="eyebrow">WELCOME TO NIKHIL OS</span>
+
+            <h1>
+                Your little world
+                <span>✨</span>
+            </h1>
+
+            <p>
+                Explore, create, play games, write notes,
+                discover your projects and enjoy the tiny world around you.
+            </p>
+
+            <div class="welcome-buttons">
+                <button class="primary" data-open="gamesWindow">
+                    🎮 Play something
+                </button>
+
+                <button class="secondary" data-open="filesWindow">
+                    📁 Explore
+                </button>
+            </div>
+
+        </div>
+
+        <div class="welcome-character">
+            🦊
+            <span>Hello!</span>
+        </div>
+
+    </section>
+
+
+    <section class="desktop-icons">
+
+        <button class="desktop-icon" data-open="filesWindow">
+            <span>📁</span>
+            <b>Files</b>
+            <small>Folders</small>
+        </button>
+
+        <button class="desktop-icon" data-open="notesWindow">
+            <span>📝</span>
+            <b>Notes</b>
+            <small>Ideas</small>
+        </button>
+
+        <button class="desktop-icon" data-open="cameraWindow">
+            <span>📷</span>
+            <b>Camera</b>
+            <small>Photos</small>
+        </button>
+
+        <button class="desktop-icon" data-open="videoWindow">
+            <span>🎥</span>
+            <b>Recorder</b>
+            <small>Video</small>
+        </button>
+
+        <button class="desktop-icon" data-open="gamesWindow">
+            <span>🎮</span>
+            <b>Game Hub</b>
+            <small>22 games</small>
+        </button>
+
+        <button class="desktop-icon" data-open="galleryWindow">
+            <span>🖼️</span>
+            <b>Gallery</b>
+            <small>Scenes</small>
+        </button>
+
+        <button class="desktop-icon" data-open="githubWindow">
+            <span>💻</span>
+            <b>GitHub</b>
+            <small>Profile</small>
+        </button>
+
+        <button class="desktop-icon" data-open="messagesWindow">
+            <span>💬</span>
+            <b>Messages</b>
+            <small>Me → Me</small>
+        </button>
+
+        <button class="desktop-icon" data-open="settingsWindow">
+            <span>⚙️</span>
+            <b>Settings</b>
+            <small>Customize</small>
+        </button>
+
+    </section>
+
+
+    <div class="floating-decoration decoration1">🌸</div>
+    <div class="floating-decoration decoration2">🦋</div>
+    <div class="floating-decoration decoration3">⭐</div>
+
+
+    <div id="windowLayer">
+
+
+        <section id="filesWindow" class="window glass">
+
+            <div class="window-header">
+                <span>📁 Files</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+            </div>
+
+            <div class="window-body">
+
+                <div class="window-banner">
+                    <div>
+                        <span class="eyebrow">MY WORLD</span>
+                        <h2>Little folders</h2>
+                        <p>Everything has its own tiny place.</p>
+                    </div>
+
+                    <span class="banner-icon">🗂️</span>
+                </div>
+
+                <div class="file-grid">
+
+                    <div class="file-card">
+                        📂
+                        <b>Projects</b>
+                        <small>12 folders</small>
+                    </div>
+
+                    <div class="file-card">
+                        📂
+                        <b>Pictures</b>
+                        <small>38 items</small>
+                    </div>
+
+                    <div class="file-card">
+                        📂
+                        <b>Music</b>
+                        <small>Anime atmosphere</small>
+                    </div>
+
+                    <div class="file-card">
+                        📂
+                        <b>Downloads</b>
+                        <small>6 items</small>
+                    </div>
+
+                    <div class="file-card">
+                        📄
+                        <b>Read Me</b>
+                        <small>NikhilOS guide</small>
+                    </div>
+
+                    <div class="file-card">
+                        ✨
+                        <b>Good Deeds</b>
+                        <small>Your little moments</small>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <section id="notesWindow" class="window glass">
+
+            <div class="window-header">
+                <span>📝 Notes</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+            </div>
+
+            <div class="window-body">
+
+                <div class="window-banner">
+                    <div>
+                        <span class="eyebrow">NOTEBOOK</span>
+                        <h2>Your thoughts</h2>
+                        <p>Your notes are saved locally.</p>
+                    </div>
+
+                    <span class="banner-icon">🌸</span>
+                </div>
+
+                <textarea
+                    id="notesArea"
+                    placeholder="Write an idea, reminder, project plan, story or anything you want..."
+                ></textarea>
+
+                <div class="between">
+                    <span id="notesStatus">Saved locally</span>
+                    <button id="saveNotes" class="primary">Save note</button>
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <section id="cameraWindow" class="window glass">
+
+            <div class="window-header">
+                <span>📷 Camera</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+            </div>
+
+            <div class="window-body camera-body">
+
+                <video id="cameraPreview" autoplay muted playsinline></video>
+
+                <canvas id="cameraCanvas"></canvas>
+
+                <div class="camera-controls">
+
+                    <button id="startCamera" class="primary">
+                        📷 Start camera
+                    </button>
+
+                    <button id="takePhoto" class="secondary">
+                        ✨ Take photo
+                    </button>
+
+                </div>
+
+                <p id="cameraStatus">
+                    Camera permission will be requested by your browser.
+                </p>
+
+                <div id="photoGallery" class="photo-gallery"></div>
+
+            </div>
+        </section>
+
+
+
+        <section id="videoWindow" class="window glass">
+
+            <div class="window-header">
+                <span>🎥 Video Recorder</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+            </div>
+
+            <div class="window-body camera-body">
+
+                <video
+                    id="recordPreview"
+                    autoplay
+                    muted
+                    playsinline
+                ></video>
+
+                <video
+                    id="recordPlayback"
+                    controls
+                    playsinline
+                    hidden
+                ></video>
+
+                <div class="record-info">
+                    <span id="recordDot"></span>
+                    <b id="recordStatus">Ready</b>
+                    <span id="recordTimer">00:00</span>
+                </div>
+
+                <div class="camera-controls">
+
+                    <button id="startRecording" class="primary">
+                        ● Start recording
+                    </button>
+
+                    <button id="stopRecording" class="secondary" disabled>
+                        ■ Stop
+                    </button>
+
+                    <a
+                        id="downloadRecording"
+                        class="secondary download-button"
+                        hidden
+                    >
+                        ⬇ Save video
+                    </a>
+
+                </div>
+
+                <p>
+                    Your browser will ask before using your camera or microphone.
+                </p>
+
+            </div>
+        </section>
+
+
+
+        <section id="gamesWindow" class="window glass large-window">
+
+            <div class="window-header">
+
+                <span>🎮 Game Hub</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="window-banner">
+
+                    <div>
+                        <span class="eyebrow">NIKHILOS ARCADE</span>
+
+                        <h2>Pick your tiny challenge</h2>
+
+                        <p>
+                            Fast games, different mechanics and lots of little chaos.
+                        </p>
+                    </div>
+
+                    <span class="banner-icon">🕹️</span>
+
+                </div>
+
+                <div id="gamesGrid" class="games-grid"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <section id="gamePlayWindow" class="window glass game-window">
+
+            <div class="window-header">
+
+                <span>
+                    🕹️
+                    <span id="gameTitle">Game</span>
+                </span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="game-top">
+
+                    <div>
+                        <span id="gameDescription">
+                            Ready?
+                        </span>
+                    </div>
+
+                    <div class="game-stats">
+
+                        <span>
+                            ⭐
+                            <b id="gameScore">0</b>
+                        </span>
+
+                        <span>
+                            ⏱
+                            <b id="gameTime">20</b>
+                        </span>
+
+                        <span>
+                            🏆
+                            <b id="bestScore">0</b>
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div id="gameArena" class="game-arena">
+                    <div id="gameMessage" class="game-message">
+                        Press Start!
+                    </div>
+                </div>
+
+                <div class="game-controls">
+
+                    <button id="startGame" class="primary">
+                        ▶ Start
+                    </button>
+
+                    <button id="restartGame" class="secondary">
+                        ↻ Restart
+                    </button>
+
+                    <button id="backToGames" class="secondary">
+                        ← Game Hub
+                    </button>
+
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <section id="galleryWindow" class="window glass large-window">
+
+            <div class="window-header">
+
+                <span>🖼️ Gallery</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="window-banner">
+
+                    <div>
+                        <span class="eyebrow">VISUAL WORLD</span>
+                        <h2>Little scenes</h2>
+                        <p>
+                            Original anime-inspired scenes made for NikhilOS.
+                        </p>
+                    </div>
+
+                    <span class="banner-icon">🎨</span>
+
+                </div>
+
+                <div id="galleryGrid" class="gallery-grid"></div>
+
+            </div>
+        </section>
+
+
+
+        <section id="githubWindow" class="window glass">
+
+            <div class="window-header">
+
+                <span>💻 GitHub</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="github-search">
+
+                    <input
+                        id="githubUsername"
+                        placeholder="Enter GitHub username"
+                    >
+
+                    <button id="loadGithub" class="primary">
+                        Load
+                    </button>
+
+                </div>
+
+                <div id="githubProfile" class="github-profile">
+
+                    <div class="empty">
+                        https://github.com/Nikhil-jais
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <section id="messagesWindow" class="window glass">
+
+            <div class="window-header">
+
+                <span>💬 Messages</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="chat-header">
+
+                    <span class="chat-avatar">
+                        🌸
+                    </span>
+
+                    <div>
+                        <b>Me → Me</b>
+                        <small>Private local journal chat</small>
+                    </div>
+
+                </div>
+
+                <div id="chatMessages" class="chat-messages"></div>
+
+                <form id="chatForm" class="chat-form">
+
+                    <input
+                        id="chatInput"
+                        maxlength="300"
+                        placeholder="Write yourself something..."
+                    >
+
+                    <button class="primary">
+                        Send
+                    </button>
+
+                </form>
+
+            </div>
+        </section>
+
+
+
+        <section id="settingsWindow" class="window glass">
+
+            <div class="window-header">
+
+                <span>⚙️ Settings</span>
+
+                <div>
+                    <button class="minimize">—</button>
+                    <button class="close">×</button>
+                </div>
+
+            </div>
+
+            <div class="window-body">
+
+                <div class="window-banner">
+
+                    <div>
+                        <span class="eyebrow">PERSONALIZE</span>
+
+                        <h2>Make it yours</h2>
+
+                        <p>
+                            Change the atmosphere of your little universe.
+                        </p>
+                    </div>
+
+                    <span class="banner-icon">✨</span>
+
+                </div>
+
+
+                <div class="settings-list">
+
+                    <div class="setting-row">
+
+                        <div>
+                            <b>🎵 Anime atmosphere</b>
+                            <small>Background music</small>
+                        </div>
+
+                        <label class="toggle">
+                            <input id="soundToggle" type="checkbox" checked>
+                            <span></span>
+                        </label>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <b>🌸 Falling petals</b>
+                            <small>Floating decorations</small>
+                        </div>
+
+                        <label class="toggle">
+                            <input id="petalToggle" type="checkbox" checked>
+                            <span></span>
+                        </label>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <b>🐾 Roaming friends</b>
+                            <small>Animals walking around the world</small>
+                        </div>
+
+                        <label class="toggle">
+                            <input id="animalToggle" type="checkbox" checked>
+                            <span></span>
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <h3>🎨 Choose your world</h3>
+
+                <div class="theme-picker">
+
+                    <button class="theme-card" data-theme="light">
+                        ☀️
+                        <b>Light</b>
+                        <small>Bright sky</small>
+                    </button>
+
+                    <button class="theme-card" data-theme="dark">
+                        🌙
+                        <b>Dark</b>
+                        <small>Night city</small>
+                    </button>
+
+                    <button class="theme-card" data-theme="yellow">
+                        💛
+                        <b>Yellow</b>
+                        <small>Golden world</small>
+                    </button>
+
+                    <button class="theme-card" data-theme="pink">
+                        💗
+                        <b>Pink</b>
+                        <small>Sakura world</small>
+                    </button>
+
+                </div>
+
+
+                <div class="deed-box">
+
+                    <span>✨</span>
+
+                    <div>
+                        <b>Good Deed Garden</b>
+                        <p id="goodDeedText">
+                            Add a little kindness to your garden.
+                        </p>
+                    </div>
+
+                    <button id="goodDeedButton" class="secondary">
+                        +1
+                    </button>
+
+                </div>
+
+
+                <div class="settings-bottom">
+
+                    <button id="sleepButton" class="secondary">
+                        😴 Sleep desktop
+                    </button>
+
+                    <span id="deedCount">
+                        Good deeds: 0
+                    </span>
+
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+
+
+    <div class="dock glass">
+
+        <button class="dock-button" data-open="filesWindow">📁</button>
+        <button class="dock-button" data-open="notesWindow">📝</button>
+        <button class="dock-button" data-open="cameraWindow">📷</button>
+        <button class="dock-button" data-open="videoWindow">🎥</button>
+        <button class="dock-button" data-open="gamesWindow">🎮</button>
+        <button class="dock-button" data-open="galleryWindow">🖼️</button>
+        <button class="dock-button" data-open="githubWindow">💻</button>
+        <button class="dock-button" data-open="messagesWindow">💬</button>
+        <button class="dock-button" data-open="settingsWindow">⚙️</button>
+
+        <div class="music-status">
+            <span>🎵</span>
+            <div>
+                <b>Anime atmosphere</b>
+                <small id="musicStatus">Music is ON</small>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <button id="fairyScroll" class="fairy-scroll">
+        🪄
+        <span>✦</span>
+    </button>
+
+
+
+    <div id="sleepOverlay" class="sleep-overlay">
+
+        <div>
+            <div class="sleep-icon">🌙</div>
+
+            <h2>Good night ✨</h2>
+
+            <p>
+                Click anywhere to wake NikhilOS.
+            </p>
+        </div>
+
+    </div>
+
+
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="assets/anime-ambient.mp3" type="audio/mpeg">
+    </audio>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
