@@ -1,1909 +1,4158 @@
-:root{
---ink:#30233d;
---muted:#76657f;
---pink:#ff75ad;
---purple:#9b83ed;
---blue:#7ac9ed;
---yellow:#ffe083;
---green:#73c991;
---glass:rgba(255,255,255,.68);
---glass2:rgba(255,255,255,.82);
---line:rgba(50,35,70,.12);
---shadow:0 22px 65px rgba(64,42,95,.18);
---accent:var(--pink);
---accent2:var(--purple);
+// ==================== AUDIO ====================
+
+const bgMusic = new Audio("assets/audio/music.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.35;
+
+const clickSound = new Audio("assets/audio/click.mp3");
+const successSound = new Audio("assets/audio/success.mp3");
+const failSound = new Audio("assets/audio/fail.mp3");
+
+function playMusic() {
+    bgMusic.play().catch(() => {});
 }
 
-*{
-box-sizing:border-box;
+function playClick() {
+    clickSound.currentTime = 0;
+    clickSound.play().catch(() => {});
 }
 
-html,
-body{
-margin:0;
-width:100%;
-height:100%;
-overflow:hidden;
-font-family:"Trebuchet MS","Segoe UI",sans-serif;
-color:var(--ink);
+function playSuccess() {
+    successSound.currentTime = 0;
+    successSound.play().catch(() => {});
 }
 
-button,
-input,
-textarea{
-font:inherit;
+function playFail() {
+    failSound.currentTime = 0;
+    failSound.play().catch(() => {});
 }
 
-button{
-cursor:pointer;
+const $ = (selector, parent = document) => parent.querySelector(selector);
+const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+
+const storage = {
+    get(key, fallback) {
+        try {
+            const value = localStorage.getItem(key);
+            return value === null ? fallback : JSON.parse(value);
+        } catch {
+            return fallback;
+        }
+    },
+
+    set(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch {}
+    }
+};
+
+
+/* =========================================
+   BOOT
+========================================= */
+
+const bootScreen = $("#bootScreen");
+
+setTimeout(() => {
+    if (bootScreen) {
+        bootScreen.style.opacity = "0";
+
+        setTimeout(() => {
+            bootScreen.remove();
+        }, 500);
+    }
+}, 1800);
+
+
+/* =========================================
+   WINDOW SYSTEM
+========================================= */
+
+let highestZ = 50;
+
+function openWindow(id) {
+
+    const windowElement = $("#" + id);
+
+    if (!windowElement) return;
+
+    $$(".window").forEach(windowItem => {
+        windowItem.classList.remove("active");
+    });
+
+    windowElement.classList.add("active");
+
+    highestZ++;
+
+    windowElement.style.zIndex = highestZ;
 }
 
-body{
-background:#cfeeff;
+function closeWindow(windowElement) {
+
+    if (!windowElement) return;
+
+    windowElement.classList.remove("active");
+
+    if (windowElement.id === "cameraWindow") {
+        stopCamera();
+    }
+
+    if (windowElement.id === "videoWindow") {
+        stopRecording();
+    }
 }
 
-.desktop{
-position:fixed;
-inset:0;
-overflow:hidden;
-background:
-linear-gradient(
-180deg,
-#8edcff 0%,
-#dff6ff 45%,
-#fff3fa 67%,
-#c8e9c5 100%
+$$("[data-open]").forEach(button => {
+
+    button.addEventListener("click", () => {
+        openWindow(button.dataset.open);
+    });
+
+});
+
+$$(".window").forEach(windowElement => {
+
+    const closeButton = $(".close", windowElement);
+    const minimizeButton = $(".minimize", windowElement);
+
+    if (closeButton) {
+        closeButton.addEventListener("click", () => {
+            closeWindow(windowElement);
+        });
+    }
+
+    if (minimizeButton) {
+        minimizeButton.addEventListener("click", () => {
+            windowElement.classList.remove("active");
+        });
+    }
+
+    windowElement.addEventListener("pointerdown", () => {
+        highestZ++;
+        windowElement.style.zIndex = highestZ;
+    });
+
+});
+
+
+$("#topSettings")?.addEventListener("click", () => {
+    openWindow("settingsWindow");
+});
+
+
+/* =========================================
+   DRAGGABLE WINDOWS
+========================================= */
+
+$$(".window-header").forEach(header => {
+
+    let dragging = false;
+
+    let startX = 0;
+    let startY = 0;
+
+    let originalX = 0;
+    let originalY = 0;
+
+    header.addEventListener("pointerdown", event => {
+
+        if (event.target.closest("button")) {
+            return;
+        }
+
+        const windowElement = header.closest(".window");
+
+        if (!windowElement) return;
+
+        const rect = windowElement.getBoundingClientRect();
+
+        dragging = true;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        originalX = rect.left;
+        originalY = rect.top;
+
+        windowElement.style.transform = "none";
+
+        windowElement.style.left = originalX + "px";
+        windowElement.style.top = originalY + "px";
+
+        header.setPointerCapture(event.pointerId);
+
+    });
+
+    header.addEventListener("pointermove", event => {
+
+        if (!dragging) return;
+
+        const windowElement = header.closest(".window");
+
+        const newX = Math.max(
+            5,
+            Math.min(
+                window.innerWidth - windowElement.offsetWidth - 5,
+                originalX + event.clientX - startX
+            )
+        );
+
+        const newY = Math.max(
+            5,
+            Math.min(
+                window.innerHeight - windowElement.offsetHeight - 70,
+                originalY + event.clientY - startY
+            )
+        );
+
+        windowElement.style.left = newX + "px";
+        windowElement.style.top = newY + "px";
+
+    });
+
+    header.addEventListener("pointerup", () => {
+        dragging = false;
+    });
+
+});
+
+
+/* =========================================
+   CLOCK
+========================================= */
+
+function updateClock() {
+
+    const now = new Date();
+
+    $("#clock").textContent =
+        now.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+}
+
+updateClock();
+
+setInterval(updateClock, 1000);
+
+
+/* =========================================
+   NOTES
+========================================= */
+
+const notesKey = "nikhilOS_notes";
+
+$("#notesArea").value =
+    storage.get(notesKey, "");
+
+$("#saveNotes").addEventListener("click", () => {
+
+    storage.set(
+        notesKey,
+        $("#notesArea").value
+    );
+
+    $("#notesStatus").textContent =
+        "Saved just now ✓";
+
+    setTimeout(() => {
+        $("#notesStatus").textContent =
+            "Saved locally";
+    }, 1800);
+
+});
+
+
+/* =========================================
+   MUSIC
+========================================= */
+
+const music = $("#bgMusic");
+
+let musicEnabled =
+    storage.get("nikhilOS_music", true);
+
+music.volume = 0.22;
+
+$("#soundToggle").checked =
+    musicEnabled;
+
+async function startMusic() {
+
+    if (!musicEnabled) return;
+
+    try {
+
+        await music.play();
+
+        $("#musicStatus").textContent =
+            "Music is ON";
+
+    } catch {
+
+        $("#musicStatus").textContent =
+            "Click once to start";
+
+    }
+}
+
+document.addEventListener(
+    "pointerdown",
+    startMusic,
+    { once: true }
 );
-transition:.6s;
-}
 
-.sky{
-position:absolute;
-inset:0;
-background:
-radial-gradient(
-circle at 76% 17%,
-rgba(255,255,255,.95),
-transparent 13%
-),
-radial-gradient(
-circle at 20% 25%,
-rgba(255,255,255,.4),
-transparent 18%
+$("#soundToggle").addEventListener(
+    "change",
+    event => {
+
+        musicEnabled =
+            event.target.checked;
+
+        storage.set(
+            "nikhilOS_music",
+            musicEnabled
+        );
+
+        if (musicEnabled) {
+            startMusic();
+        } else {
+            music.pause();
+        }
+
+        $("#musicStatus").textContent =
+            musicEnabled
+                ? "Music is ON"
+                : "Music is OFF";
+    }
 );
-pointer-events:none;
+
+
+/* =========================================
+   THEMES
+========================================= */
+
+const themes = [
+    "light",
+    "dark",
+    "yellow",
+    "pink"
+];
+
+let currentTheme =
+    storage.get(
+        "nikhilOS_theme",
+        "light"
+    );
+
+function applyTheme(theme) {
+
+    if (!themes.includes(theme)) {
+        theme = "light";
+    }
+
+    currentTheme = theme;
+
+    storage.set(
+        "nikhilOS_theme",
+        theme
+    );
+
+    document.body.classList.remove(
+        "theme-dark",
+        "theme-yellow",
+        "theme-pink"
+    );
+
+    if (theme !== "light") {
+
+        document.body.classList.add(
+            "theme-" + theme
+        );
+    }
+
+    $$(".theme-card").forEach(button => {
+
+        button.classList.toggle(
+            "active",
+            button.dataset.theme === theme
+        );
+
+    });
+
+    const moods = {
+
+        light:
+            "☀️ Happy little day",
+
+        dark:
+            "🌙 Cozy night",
+
+        yellow:
+            "💛 Golden adventure",
+
+        pink:
+            "💗 Sakura dream"
+
+    };
+
+    $("#moodText").textContent =
+        moods[theme];
+
 }
 
-.sun{
-position:absolute;
-right:11%;
-top:12%;
-width:105px;
-height:105px;
-border-radius:50%;
-background:#fff2a5;
-box-shadow:
-0 0 30px #fff3b3,
-0 0 90px rgba(255,215,91,.65);
-transition:.5s;
+applyTheme(currentTheme);
+
+$$(".theme-card").forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+            applyTheme(
+                button.dataset.theme
+            );
+        }
+    );
+
+});
+
+
+/* =========================================
+   PETALS / PARTICLES
+========================================= */
+
+let petalsEnabled =
+    storage.get(
+        "nikhilOS_petals",
+        true
+    );
+
+$("#petalToggle").checked =
+    petalsEnabled;
+
+let particleInterval;
+
+function createParticle() {
+
+    if (!petalsEnabled) return;
+
+    const particle =
+        document.createElement("span");
+
+    particle.className = "particle";
+
+    particle.textContent =
+        [
+            "🌸",
+            "✦",
+            "✨",
+            "🍃",
+            "🩷"
+        ][
+            Math.floor(
+                Math.random() * 5
+            )
+        ];
+
+    particle.style.left =
+        Math.random() * 100 + "%";
+
+    particle.style.top =
+        "-30px";
+
+    particle.style.setProperty(
+        "--duration",
+        5 + Math.random() * 5 + "s"
+    );
+
+    particle.style.fontSize =
+        9 + Math.random() * 12 + "px";
+
+    $("#particleLayer").appendChild(
+        particle
+    );
+
+    setTimeout(() => {
+        particle.remove();
+    }, 10000);
 }
 
-.moon{
-position:absolute;
-right:12%;
-top:13%;
-width:95px;
-height:95px;
-border-radius:50%;
-background:#fff;
-box-shadow:
-0 0 60px rgba(202,198,255,.8);
-opacity:0;
-transition:.5s;
+function restartParticles() {
+
+    clearInterval(
+        particleInterval
+    );
+
+    if (petalsEnabled) {
+
+        particleInterval =
+            setInterval(
+                createParticle,
+                650
+            );
+    }
 }
 
-.cloud{
-position:absolute;
-width:180px;
-height:42px;
-background:rgba(255,255,255,.65);
-border-radius:60px;
-z-index:1;
-animation:cloudMove 38s linear infinite;
-}
+restartParticles();
 
-.cloud:before,
-.cloud:after{
-content:"";
-position:absolute;
-background:inherit;
-border-radius:50%;
-}
+$("#petalToggle").addEventListener(
+    "change",
+    event => {
 
-.cloud:before{
-width:75px;
-height:75px;
-left:27px;
-bottom:0;
-}
+        petalsEnabled =
+            event.target.checked;
 
-.cloud:after{
-width:90px;
-height:90px;
-right:20px;
-bottom:-5px;
-}
+        storage.set(
+            "nikhilOS_petals",
+            petalsEnabled
+        );
 
-.cloud1{
-top:19%;
-left:-220px;
-}
-
-.cloud2{
-top:34%;
-left:-400px;
-transform:scale(.72);
-animation-duration:52s;
-animation-delay:-17s;
-}
-
-.cloud3{
-top:11%;
-left:-500px;
-transform:scale(.5);
-animation-duration:65s;
-animation-delay:-30s;
-}
-
-.mountains{
-position:absolute;
-left:0;
-right:0;
-bottom:16%;
-height:27%;
-background:
-linear-gradient(
-145deg,
-transparent 0 12%,
-rgba(116,169,161,.48) 12% 27%,
-transparent 27% 39%,
-rgba(102,157,153,.45) 39% 55%,
-transparent 55% 68%,
-rgba(139,187,166,.5) 68% 82%,
-transparent 82%
+        restartParticles();
+    }
 );
-clip-path:
-polygon(
-0 70%,
-9% 34%,
-18% 58%,
-29% 15%,
-42% 59%,
-54% 25%,
-68% 62%,
-78% 32%,
-89% 58%,
-100% 20%,
-100% 100%,
-0 100%
+
+
+/* =========================================
+   ROAMING ANIMALS
+========================================= */
+
+let animalsEnabled =
+    storage.get(
+        "nikhilOS_animals",
+        true
+    );
+
+$("#animalToggle").checked =
+    animalsEnabled;
+
+const animals = [
+    "🐱",
+    "🐰",
+    "🦊",
+    "🐻",
+    "🐼",
+    "🐥",
+    "🐶",
+    "🦋"
+];
+
+function createAnimals() {
+
+    $("#animalLayer").innerHTML = "";
+
+    if (!animalsEnabled) {
+        return;
+    }
+
+    animals.slice(0, 7).forEach(
+        (animal, index) => {
+
+            const element =
+                document.createElement("span");
+
+            element.className =
+                "animal";
+
+            element.textContent =
+                animal;
+
+            element.style.top =
+                25 +
+                index * 8 +
+                Math.random() * 7 +
+                "%";
+
+            element.style.left =
+                -10 -
+                index * 5 +
+                "vw";
+
+            element.style.setProperty(
+                "--duration",
+                18 + index * 4 + "s"
+            );
+
+            element.style.animationDelay =
+                -index * 3 + "s";
+
+            $("#animalLayer").appendChild(
+                element
+            );
+        }
+    );
+}
+
+createAnimals();
+
+$("#animalToggle").addEventListener(
+    "change",
+    event => {
+
+        animalsEnabled =
+            event.target.checked;
+
+        storage.set(
+            "nikhilOS_animals",
+            animalsEnabled
+        );
+
+        createAnimals();
+    }
 );
+
+
+/* =========================================
+   GOOD DEEDS
+========================================= */
+
+let goodDeeds =
+    storage.get(
+        "nikhilOS_goodDeeds",
+        0
+    );
+
+const goodDeedMessages = [
+    "A tiny kindness can brighten someone's day. 🌱",
+    "Your little garden grew! 🌸",
+    "Kindness +1. Keep going. ✨",
+    "You planted a happy thought. 🌷",
+    "Tiny good actions still matter. 💛",
+    "Your world feels a little warmer today. 🦋"
+];
+
+function updateDeeds() {
+
+    $("#deedCount").textContent =
+        "Good deeds: " + goodDeeds;
 }
 
-.city{
-position:absolute;
-bottom:12%;
-left:0;
-width:100%;
-height:25%;
-display:flex;
-align-items:flex-end;
-gap:1vw;
-opacity:.62;
-pointer-events:none;
-}
+updateDeeds();
 
-.building{
-position:relative;
-width:9vw;
-min-width:45px;
-background:
-linear-gradient(
-160deg,
-rgba(111,112,155,.7),
-rgba(79,98,133,.52)
+$("#goodDeedButton").addEventListener(
+    "click",
+    () => {
+
+        goodDeeds++;
+
+        storage.set(
+            "nikhilOS_goodDeeds",
+            goodDeeds
+        );
+
+        updateDeeds();
+
+        $("#goodDeedText").textContent =
+            goodDeedMessages[
+                Math.floor(
+                    Math.random() *
+                    goodDeedMessages.length
+                )
+            ];
+
+        for (let i = 0; i < 7; i++) {
+
+            setTimeout(() => {
+
+                const particle =
+                    document.createElement("span");
+
+                particle.className =
+                    "particle";
+
+                particle.textContent =
+                    "💖";
+
+                particle.style.left =
+                    40 + Math.random() * 20 + "%";
+
+                particle.style.top =
+                    40 + Math.random() * 10 + "%";
+
+                particle.style.setProperty(
+                    "--duration",
+                    "2s"
+                );
+
+                $("#particleLayer")
+                    .appendChild(particle);
+
+                setTimeout(
+                    () => particle.remove(),
+                    2100
+                );
+
+            }, i * 90);
+        }
+
+    }
 );
-border-radius:8px 8px 0 0;
-box-shadow:
-inset 0 0 0 1px rgba(255,255,255,.25);
-}
 
-.building:after{
-content:"";
-position:absolute;
-inset:12px 9px;
-background:
-repeating-linear-gradient(
-90deg,
-rgba(255,239,158,.85) 0 8px,
-transparent 8px 18px
-),
-repeating-linear-gradient(
-0deg,
-transparent 0 15px,
-rgba(255,239,158,.75) 15px 23px
+
+/* =========================================
+   SLEEP MODE
+========================================= */
+
+$("#sleepButton").addEventListener(
+    "click",
+    () => {
+        $("#sleepOverlay")
+            .classList.add("active");
+    }
 );
-opacity:.65;
-}
 
-.building1{height:46%}
-.building2{height:72%}
-.building3{height:58%}
-.building4{height:86%}
-.building5{height:51%}
-.building6{height:68%}
-.building7{height:43%}
-.building8{height:78%}
-
-.street{
-position:absolute;
-left:0;
-right:0;
-bottom:0;
-height:12%;
-background:
-linear-gradient(
-180deg,
-rgba(95,124,116,.2),
-rgba(78,100,97,.45)
+$("#sleepOverlay").addEventListener(
+    "click",
+    () => {
+        $("#sleepOverlay")
+            .classList.remove("active");
+    }
 );
+
+
+/* =========================================
+   CAMERA
+========================================= */
+
+let cameraStream = null;
+
+async function startCamera() {
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        $("#cameraStatus").textContent =
+            "Your browser does not support camera access.";
+
+        return;
+    }
+
+    try {
+
+        cameraStream =
+            await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+
+        $("#cameraPreview").srcObject =
+            cameraStream;
+
+        $("#cameraStatus").textContent =
+            "Camera is live! 📷";
+
+    } catch {
+
+        $("#cameraStatus").textContent =
+            "Camera permission was not granted.";
+
+    }
 }
 
-.street:after{
-content:"";
-position:absolute;
-left:0;
-right:0;
-top:45%;
-height:5px;
-background:
-repeating-linear-gradient(
-90deg,
-rgba(255,239,162,.8) 0 50px,
-transparent 50px 100px
+function stopCamera() {
+
+    if (cameraStream) {
+
+        cameraStream
+            .getTracks()
+            .forEach(track => {
+                track.stop();
+            });
+
+        cameraStream = null;
+    }
+
+    if ($("#cameraPreview")) {
+        $("#cameraPreview").srcObject = null;
+    }
+}
+
+$("#startCamera").addEventListener(
+    "click",
+    startCamera
 );
-}
 
-.trees{
-position:absolute;
-left:0;
-right:0;
-bottom:7%;
-height:17%;
-background:
-radial-gradient(
-ellipse at 5% 100%,
-#65ac78 0 9%,
-transparent 10%
-),
-radial-gradient(
-ellipse at 17% 100%,
-#79b981 0 11%,
-transparent 12%
-),
-radial-gradient(
-ellipse at 31% 100%,
-#62a973 0 12%,
-transparent 13%
-),
-radial-gradient(
-ellipse at 49% 100%,
-#7cbd82 0 10%,
-transparent 11%
-),
-radial-gradient(
-ellipse at 68% 100%,
-#5ca371 0 13%,
-transparent 14%
-),
-radial-gradient(
-ellipse at 86% 100%,
-#82c487 0 11%,
-transparent 12%
+$("#takePhoto").addEventListener(
+    "click",
+    () => {
+
+        if (!cameraStream) {
+
+            $("#cameraStatus").textContent =
+                "Start the camera first.";
+
+            return;
+        }
+
+        const video =
+            $("#cameraPreview");
+
+        const canvas =
+            $("#cameraCanvas");
+
+        canvas.width =
+            video.videoWidth || 640;
+
+        canvas.height =
+            video.videoHeight || 480;
+
+        const context =
+            canvas.getContext("2d");
+
+        context.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        const image =
+            document.createElement("img");
+
+        image.src =
+            canvas.toDataURL("image/png");
+
+        $("#photoGallery")
+            .prepend(image);
+
+        $("#cameraStatus").textContent =
+            "Photo captured! ✨";
+
+    }
 );
-pointer-events:none;
+
+
+/* =========================================
+   VIDEO RECORDER
+========================================= */
+
+let recordingStream = null;
+let recorder = null;
+let recordingChunks = [];
+let recordingStart = 0;
+let recordingTimer = null;
+
+async function prepareRecorder() {
+
+    recordingStream =
+        await navigator.mediaDevices
+            .getUserMedia({
+                video: true,
+                audio: true
+            });
+
+    $("#recordPreview").srcObject =
+        recordingStream;
 }
 
-.glass{
-background:var(--glass);
-border:1px solid rgba(255,255,255,.75);
-box-shadow:var(--shadow);
-backdrop-filter:blur(18px);
--webkit-backdrop-filter:blur(18px);
+async function startRecording() {
+
+    try {
+
+        if (!recordingStream) {
+            await prepareRecorder();
+        }
+
+        recordingChunks = [];
+
+        recorder =
+            new MediaRecorder(
+                recordingStream
+            );
+
+        recorder.ondataavailable =
+            event => {
+
+                if (event.data.size > 0) {
+
+                    recordingChunks.push(
+                        event.data
+                    );
+                }
+            };
+
+        recorder.onstop = () => {
+
+            const blob =
+                new Blob(
+                    recordingChunks,
+                    {
+                        type:
+                            recorder.mimeType ||
+                            "video/webm"
+                    }
+                );
+
+            const url =
+                URL.createObjectURL(blob);
+
+            $("#recordPlayback").src =
+                url;
+
+            $("#recordPlayback").hidden =
+                false;
+
+            $("#downloadRecording").href =
+                url;
+
+            $("#downloadRecording").download =
+                "nikhilOS-video.webm";
+
+            $("#downloadRecording").hidden =
+                false;
+        };
+
+        recorder.start();
+
+        recordingStart =
+            Date.now();
+
+        $("#recordDot")
+            .classList.add("recording");
+
+        $("#recordStatus").textContent =
+            "Recording...";
+
+        $("#startRecording").disabled =
+            true;
+
+        $("#stopRecording").disabled =
+            false;
+
+        clearInterval(recordingTimer);
+
+        recordingTimer =
+            setInterval(() => {
+
+                const seconds =
+                    Math.floor(
+                        (Date.now() -
+                            recordingStart) /
+                        1000
+                    );
+
+                const minutes =
+                    Math.floor(
+                        seconds / 60
+                    );
+
+                const remaining =
+                    seconds % 60;
+
+                $("#recordTimer").textContent =
+                    String(minutes).padStart(
+                        2,
+                        "0"
+                    ) +
+                    ":" +
+                    String(remaining).padStart(
+                        2,
+                        "0"
+                    );
+
+            }, 250);
+
+    } catch {
+
+        $("#recordStatus").textContent =
+            "Camera or microphone permission was not granted.";
+
+    }
 }
 
-.topbar{
-position:absolute;
-top:14px;
-left:18px;
-right:18px;
-height:62px;
-border-radius:22px;
-padding:8px 13px 8px 10px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-z-index:30;
+function stopRecording() {
+
+    if (
+        recorder &&
+        recorder.state !== "inactive"
+    ) {
+
+        recorder.stop();
+    }
+
+    if (recordingStream) {
+
+        recordingStream
+            .getTracks()
+            .forEach(track => {
+                track.stop();
+            });
+
+        recordingStream = null;
+    }
+
+    clearInterval(
+        recordingTimer
+    );
+
+    $("#recordDot")
+        .classList.remove("recording");
+
+    $("#recordStatus").textContent =
+        "Ready";
+
+    $("#startRecording").disabled =
+        false;
+
+    $("#stopRecording").disabled =
+        true;
 }
 
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-}
-
-.brand-logo{
-width:44px;
-height:44px;
-border-radius:15px;
-display:grid;
-place-items:center;
-background:
-linear-gradient(
-135deg,
-var(--pink),
-var(--purple)
+$("#startRecording").addEventListener(
+    "click",
+    startRecording
 );
-color:white;
-font-size:20px;
-font-weight:900;
-box-shadow:0 10px 25px rgba(140,110,220,.3);
-}
 
-.brand strong{
-display:block;
-font-size:15px;
-}
-
-.brand small{
-display:block;
-font-size:9px;
-color:var(--muted);
-margin-top:2px;
-}
-
-.mood{
-padding:8px 14px;
-border-radius:999px;
-background:rgba(255,255,255,.55);
-font-size:11px;
-font-weight:900;
-color:var(--purple);
-}
-
-.system-info{
-display:flex;
-align-items:center;
-gap:12px;
-font-size:10px;
-color:var(--muted);
-}
-
-.system-info button{
-border:0;
-background:rgba(255,255,255,.7);
-width:38px;
-height:38px;
-border-radius:13px;
-}
-
-.welcome{
-position:absolute;
-left:6%;
-top:100px;
-width:min(550px,55vw);
-padding:28px 30px;
-border-radius:30px;
-z-index:4;
-}
-
-.eyebrow{
-font-size:9px;
-font-weight:900;
-letter-spacing:2px;
-color:var(--purple);
-}
-
-.welcome h1{
-font-size:clamp(28px,3.5vw,48px);
-line-height:1.02;
-margin:9px 0;
-}
-
-.welcome p{
-font-size:12px;
-line-height:1.65;
-color:var(--muted);
-margin-bottom:18px;
-}
-
-.welcome-buttons{
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-}
-
-.primary,
-.secondary{
-border:0;
-border-radius:14px;
-padding:11px 15px;
-font-weight:900;
-transition:.2s;
-text-decoration:none;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-}
-
-.primary{
-color:white;
-background:
-linear-gradient(
-135deg,
-var(--accent),
-var(--accent2)
+$("#stopRecording").addEventListener(
+    "click",
+    stopRecording
 );
-box-shadow:0 10px 25px rgba(143,124,243,.25);
+
+
+/* =========================================
+   ORIGINAL ANIME-INSPIRED GALLERY
+========================================= */
+
+const galleryScenes = [
+    ["Sky Train","A tiny train above the clouds","🚋","#7ed5ff","#ffb7d8"],
+    ["Sakura Street","Lanterns after the rain","🏮","#ffc6df","#9b83ed"],
+    ["Forest Friend","A quiet green afternoon","🦊","#9fe3bb","#75b9ff"],
+    ["Moon City","Lights in a sleepy city","🌙","#292551","#8d82ff"],
+    ["Golden Hill","A warm sunset walk","🌄","#ffd77a","#ff9b75"],
+    ["Ocean Day","A little blue adventure","🌊","#7dd9ee","#a6a4ff"],
+    ["Cloud Café","Coffee above the clouds","☕","#d7eaff","#ffb7ca"],
+    ["Star Garden","A garden under the stars","🌟","#6d67b5","#e8b7ff"],
+    ["Rainy Window","A cozy room","☔","#8ab2d9","#c7b2ef"],
+    ["Summer Path","A bright path home","🌻","#91e0a2","#ffe48c"],
+    ["Tiny Shrine","Quiet evening lights","⛩️","#f5b5c9","#ffc96e"],
+    ["Dream Lake","Reflections and fireflies","🪷","#86cfe1","#c9a7f5"]
+];
+
+function createSceneSVG(scene) {
+
+    const [
+        title,
+        description,
+        emoji,
+        color1,
+        color2
+    ] = scene;
+
+    const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
+<defs>
+<linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+<stop stop-color="${color1}"/>
+<stop offset="1" stop-color="${color2}"/>
+</linearGradient>
+</defs>
+
+<rect width="500" height="400" fill="url(#background)"/>
+
+<circle
+cx="400"
+cy="75"
+r="48"
+fill="rgba(255,255,255,.55)"
+/>
+
+<path
+d="M0 280 Q100 210 190 275 T380 255 T500 270 V400 H0Z"
+fill="rgba(40,110,100,.35)"
+/>
+
+<path
+d="M0 325 Q120 270 250 325 T500 310 V400 H0Z"
+fill="rgba(40,100,90,.45)"
+/>
+
+<circle cx="70" cy="95" r="5" fill="white"/>
+<circle cx="115" cy="150" r="4" fill="white"/>
+<circle cx="330" cy="140" r="4" fill="white"/>
+<circle cx="430" cy="190" r="5" fill="white"/>
+
+<text
+x="250"
+y="225"
+text-anchor="middle"
+font-size="70"
+>${emoji}</text>
+
+<text
+x="250"
+y="350"
+text-anchor="middle"
+font-family="Arial"
+font-size="24"
+font-weight="700"
+fill="white"
+>${title}</text>
+
+</svg>
+`;
+
+    return (
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(svg)
+    );
 }
 
-.secondary{
-color:var(--ink);
-background:rgba(255,255,255,.72);
-border:1px solid var(--line);
+$("#galleryGrid").innerHTML =
+    galleryScenes
+        .map(
+            (scene, index) => {
+
+                return `
+<div class="gallery-card">
+
+<img
+src="${createSceneSVG(scene)}"
+alt="${scene[0]}"
+>
+
+<b>${scene[0]}</b>
+
+<small>
+${scene[1]}
+</small>
+
+</div>
+`;
+            }
+        )
+        .join("");
+
+
+/* =========================================
+   GITHUB PROFILE
+========================================= */
+
+const savedGithubUsername =
+    storage.get(
+        "nikhilOS_github",
+        "Nikhil-jais"
+    );
+
+$("#githubUsername").value =
+    savedGithubUsername;
+
+async function loadGithubProfile() {
+
+    const username =
+        $("#githubUsername")
+            .value
+            .trim();
+
+    if (!username) return;
+
+    storage.set(
+        "nikhilOS_github",
+        username
+    );
+
+    $("#githubProfile").innerHTML =
+        `<div class="empty">
+            Loading GitHub profile ✨
+        </div>`;
+
+    try {
+
+        const userResponse =
+            await fetch(
+                "https://api.github.com/users/" +
+                encodeURIComponent(username)
+            );
+
+        if (!userResponse.ok) {
+            throw new Error("Profile not found");
+        }
+
+        const user =
+            await userResponse.json();
+
+        let repositories = [];
+
+        try {
+
+            const repositoryResponse =
+                await fetch(
+                    user.repos_url +
+                    "?sort=updated&per_page=6"
+                );
+
+            if (repositoryResponse.ok) {
+
+                repositories =
+                    await repositoryResponse.json();
+            }
+
+        } catch {}
+
+        $("#githubProfile").innerHTML = `
+
+<div class="github-card">
+
+<div class="github-main">
+
+<img
+src="${user.avatar_url}"
+alt="GitHub avatar"
+>
+
+<div>
+
+<h2>
+${escapeHTML(user.name || user.login)}
+</h2>
+
+<p>
+@${escapeHTML(user.login)}
+</p>
+
+<p>
+${escapeHTML(
+    user.bio ||
+    "Building little things on the internet ✨"
+)}
+</p>
+
+</div>
+
+</div>
+
+
+<div class="github-stats">
+
+<div class="github-stat">
+<b>${user.public_repos}</b>
+<small>Public repos</small>
+</div>
+
+<div class="github-stat">
+<b>${user.followers}</b>
+<small>Followers</small>
+</div>
+
+<div class="github-stat">
+<b>${user.following}</b>
+<small>Following</small>
+</div>
+
+</div>
+
+
+<div class="repo-list">
+
+${repositories
+    .map(repo => {
+
+        return `
+<div class="repo">
+
+<b>
+${escapeHTML(repo.name)}
+</b>
+
+<span>
+${escapeHTML(
+    repo.description ||
+    "No description"
+)}
+ · ⭐ ${repo.stargazers_count}
+
+</span>
+
+</div>
+`;
+
+    })
+    .join("")}
+
+</div>
+
+</div>
+`;
+
+    } catch {
+
+        $("#githubProfile").innerHTML =
+            `<div class="empty">
+                Could not load this public profile.
+                Check the username or internet connection.
+            </div>`;
+    }
 }
 
-.primary:hover,
-.secondary:hover{
-transform:translateY(-2px);
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(
+            /[&<>"']/g,
+            character => {
+
+                const map = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#039;"
+                };
+
+                return map[character];
+            }
+        );
 }
 
-.welcome-character{
-position:absolute;
-right:25px;
-bottom:13px;
-font-size:78px;
-animation:float 3s ease-in-out infinite;
-}
-
-.welcome-character span{
-display:block;
-font-size:9px;
-text-align:center;
-background:white;
-padding:4px 8px;
-border-radius:99px;
-color:var(--purple);
-}
-
-.desktop-icons{
-position:absolute;
-right:4%;
-top:104px;
-width:36%;
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:12px;
-z-index:5;
-}
-
-.desktop-icon{
-min-height:105px;
-border:1px solid rgba(255,255,255,.7);
-border-radius:21px;
-background:rgba(255,255,255,.46);
-color:var(--ink);
-box-shadow:0 12px 30px rgba(70,53,100,.08);
-transition:.2s;
-backdrop-filter:blur(10px);
-}
-
-.desktop-icon:hover{
-transform:translateY(-4px) scale(1.02);
-box-shadow:0 18px 35px rgba(70,53,100,.15);
-}
-
-.desktop-icon span{
-display:block;
-font-size:36px;
-filter:drop-shadow(0 8px 8px rgba(50,30,80,.15));
-}
-
-.desktop-icon b{
-display:block;
-font-size:11px;
-margin-top:5px;
-}
-
-.desktop-icon small{
-display:block;
-font-size:8px;
-color:var(--muted);
-margin-top:2px;
-}
-
-.floating-decoration{
-position:absolute;
-z-index:3;
-font-size:25px;
-animation:float 4s ease-in-out infinite;
-pointer-events:none;
-}
-
-.decoration1{
-left:42%;
-top:26%;
-}
-
-.decoration2{
-right:7%;
-top:50%;
-animation-delay:-1s;
-}
-
-.decoration3{
-right:43%;
-bottom:30%;
-animation-delay:-2s;
-}
-
-#animalLayer,
-#particleLayer{
-position:absolute;
-inset:0;
-pointer-events:none;
-z-index:8;
-}
-
-.animal{
-position:absolute;
-font-size:27px;
-filter:drop-shadow(0 8px 8px rgba(50,40,80,.18));
-animation:walk var(--duration) linear infinite;
-}
-
-.particle{
-position:absolute;
-animation:particleFall var(--duration) linear forwards;
-}
-
-#windowLayer{
-position:absolute;
-inset:0;
-pointer-events:none;
-z-index:20;
-}
-
-.window{
-position:absolute;
-top:17%;
-left:50%;
-transform:translateX(-50%);
-width:min(640px,86vw);
-max-height:70vh;
-border-radius:25px;
-overflow:hidden;
-display:none;
-pointer-events:auto;
-animation:windowOpen .22s ease;
-}
-
-.window.active{
-display:block;
-}
-
-.large-window{
-width:min(920px,92vw);
-max-height:76vh;
-}
-
-.game-window{
-width:min(760px,90vw);
-}
-
-.window-header{
-height:48px;
-padding:0 13px 0 17px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-background:rgba(255,255,255,.46);
-border-bottom:1px solid var(--line);
-cursor:grab;
-font-size:13px;
-font-weight:900;
-}
-
-.window-header button{
-border:0;
-background:rgba(255,255,255,.6);
-width:28px;
-height:28px;
-border-radius:9px;
-margin-left:4px;
-}
-
-.window-header button:hover{
-background:white;
-}
-
-.window-body{
-padding:18px;
-overflow:auto;
-max-height:calc(70vh - 48px);
-}
-
-.large-window .window-body{
-max-height:calc(76vh - 48px);
-}
-
-.window-banner{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:20px;
-padding:18px;
-border-radius:20px;
-background:
-linear-gradient(
-135deg,
-rgba(255,255,255,.72),
-rgba(255,255,255,.38)
+$("#loadGithub").addEventListener(
+    "click",
+    loadGithubProfile
 );
-border:1px solid var(--line);
-margin-bottom:14px;
-}
 
-.window-banner h2{
-margin:5px 0;
-font-size:23px;
-}
+$("#githubUsername").addEventListener(
+    "keydown",
+    event => {
 
-.window-banner p{
-margin:0;
-color:var(--muted);
-font-size:11px;
-}
-
-.banner-icon{
-font-size:45px;
-}
-
-.file-grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-}
-
-.file-card{
-padding:18px;
-border-radius:17px;
-background:rgba(255,255,255,.58);
-border:1px solid var(--line);
-font-size:25px;
-transition:.2s;
-}
-
-.file-card:hover{
-transform:translateY(-3px);
-}
-
-.file-card b,
-.file-card small{
-display:block;
-}
-
-.file-card b{
-font-size:11px;
-margin-top:8px;
-}
-
-.file-card small{
-font-size:8px;
-color:var(--muted);
-margin-top:3px;
-}
-
-textarea{
-width:100%;
-min-height:310px;
-resize:none;
-border:1px solid var(--line);
-border-radius:18px;
-background:rgba(255,255,255,.62);
-padding:18px;
-outline:none;
-color:var(--ink);
-line-height:1.7;
-}
-
-.between{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-top:10px;
-font-size:9px;
-color:var(--muted);
-}
-
-.camera-body{
-text-align:center;
-}
-
-.camera-body video{
-width:100%;
-max-height:330px;
-object-fit:cover;
-border-radius:19px;
-background:#282039;
-}
-
-#cameraCanvas{
-display:none;
-}
-
-.camera-controls{
-display:flex;
-justify-content:center;
-gap:8px;
-flex-wrap:wrap;
-margin:12px 0;
-}
-
-.camera-body p{
-font-size:9px;
-color:var(--muted);
-}
-
-.photo-gallery{
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-justify-content:center;
-}
-
-.photo-gallery img{
-width:105px;
-height:78px;
-object-fit:cover;
-border-radius:12px;
-border:2px solid white;
-}
-
-.record-info{
-display:flex;
-justify-content:center;
-align-items:center;
-gap:9px;
-font-size:11px;
-}
-
-#recordDot{
-width:9px;
-height:9px;
-border-radius:50%;
-background:#bbb;
-}
-
-#recordDot.recording{
-background:#ff405e;
-box-shadow:0 0 0 6px rgba(255,64,94,.12);
-animation:pulse 1s infinite;
-}
-
-.download-button{
-cursor:pointer;
-}
-
-.games-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:11px;
-}
-
-.game-card{
-position:relative;
-overflow:hidden;
-min-height:153px;
-padding:14px;
-border-radius:19px;
-border:1px solid var(--line);
-background:rgba(255,255,255,.58);
-transition:.2s;
-}
-
-.game-card:hover{
-transform:translateY(-4px);
-box-shadow:0 15px 35px rgba(70,40,100,.13);
-}
-
-.game-card .emoji{
-display:block;
-font-size:37px;
-}
-
-.game-card b{
-display:block;
-font-size:11px;
-margin-top:7px;
-}
-
-.game-card p{
-font-size:8px;
-line-height:1.45;
-color:var(--muted);
-min-height:26px;
-}
-
-.game-card button{
-width:100%;
-border:0;
-border-radius:11px;
-padding:8px;
-background:rgba(255,255,255,.82);
-font-size:9px;
-font-weight:900;
-}
-
-.game-tag{
-position:absolute;
-right:8px;
-top:8px;
-font-size:7px;
-padding:4px 6px;
-border-radius:99px;
-background:rgba(255,255,255,.8);
-color:var(--purple);
-}
-
-.game-top{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-margin-bottom:10px;
-}
-
-.game-top > div:first-child{
-font-size:11px;
-color:var(--muted);
-}
-
-.game-stats{
-display:flex;
-gap:6px;
-}
-
-.game-stats span{
-padding:7px 9px;
-border-radius:10px;
-background:rgba(255,255,255,.65);
-font-size:9px;
-}
-
-.game-arena{
-position:relative;
-height:360px;
-overflow:hidden;
-border-radius:20px;
-border:1px solid var(--line);
-background:
-radial-gradient(
-circle at 50% 20%,
-rgba(255,255,255,.85),
-transparent 35%
-),
-linear-gradient(
-145deg,
-rgba(255,255,255,.7),
-rgba(220,213,255,.65)
+        if (event.key === "Enter") {
+            loadGithubProfile();
+        }
+    }
 );
-touch-action:none;
+
+
+/* =========================================
+   SELF MESSAGES
+========================================= */
+
+const chatKey =
+    "nikhilOS_messages";
+
+let messages =
+    storage.get(
+        chatKey,
+        []
+    );
+
+function renderMessages() {
+
+    $("#chatMessages").innerHTML =
+        messages
+            .map(message => {
+
+                return `
+<div class="bubble">
+
+${escapeHTML(message.text)}
+
+<small>
+${escapeHTML(message.time)}
+</small>
+
+</div>
+`;
+
+            })
+            .join("");
+
+    $("#chatMessages").scrollTop =
+        $("#chatMessages").scrollHeight;
 }
 
-.game-message{
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-padding:12px 17px;
-border-radius:13px;
-background:rgba(255,255,255,.9);
-font-size:11px;
-font-weight:900;
-text-align:center;
-z-index:20;
-pointer-events:none;
-}
+renderMessages();
 
-.game-controls{
-display:flex;
-justify-content:center;
-gap:8px;
-flex-wrap:wrap;
-margin-top:12px;
-}
+$("#chatForm").addEventListener(
+    "submit",
+    event => {
 
-.game-target{
-position:absolute;
-width:50px;
-height:50px;
-border:0;
-border-radius:50%;
-display:grid;
-place-items:center;
-font-size:29px;
-cursor:pointer;
-animation:pop .18s ease;
-}
+        event.preventDefault();
 
-.memory-board{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:8px;
-width:min(430px,95%);
-margin:auto;
-padding-top:25px;
-}
+        const input =
+            $("#chatInput");
 
-.memory-card{
-aspect-ratio:1;
-border:0;
-border-radius:14px;
-background:
-linear-gradient(
-135deg,
-var(--pink),
-var(--purple)
+        const text =
+            input.value.trim();
+
+        if (!text) return;
+
+        messages.push({
+            text,
+            time:
+                new Date()
+                    .toLocaleTimeString(
+                        [],
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        }
+                    )
+        });
+
+        messages =
+            messages.slice(-100);
+
+        storage.set(
+            chatKey,
+            messages
+        );
+
+        input.value = "";
+
+        renderMessages();
+    }
 );
-color:white;
-font-size:22px;
-font-weight:900;
+
+
+/* =========================================
+   GAME CENTER
+========================================= */
+
+const gameDefinitions = [
+
+    ["reaction","⚡","Lightning Reflex","Wait for the green flash.","Reaction"],
+
+    ["stars","⭐","Star Catcher","Catch the moving stars.","Catch"],
+
+    ["ball","🏀","Bouncy Ball","Catch the bouncing ball.","Catch"],
+
+    ["neko","🐱","Neko Chase","Catch the sneaky cat.","Catch"],
+
+    ["memory","🧠","Memory Garden","Match every pair.","Memory"],
+
+    ["math","➕","Math Dash","Solve as many sums as possible.","Brain"],
+
+    ["color","🎨","Color Call","Tap the requested color.","Brain"],
+
+    ["whack","🔨","Mochi Whack","Hit the mochi.","Arcade"],
+
+    ["typing","⌨️","Speed Type","Type the displayed word.","Typing"],
+
+    ["sequence","🔴","Color Sequence","Remember the sequence.","Memory"],
+
+    ["balloon","🎈","Balloon Pop","Pop floating balloons.","Catch"],
+
+    ["fish","🐟","Fish Catch","Catch the quick fish.","Catch"],
+
+    ["crystal","💎","Crystal Hunt","Collect crystals.","Catch"],
+
+    ["runner","🏃","Tiny Runner","Jump over obstacles.","Run"],
+
+    ["frog","🐸","Frog Jump","Jump over obstacles.","Jump"],
+
+    ["dodge","🛸","Meteor Dodge","Avoid meteors.","Dodge"],
+
+    ["rocket","🚀","Rocket Road","Fly through the meteor lane.","Road"],
+
+    ["duck","🦆","Duck Dash","Protect the duck.","Road"],
+
+    ["snake","🐍","Garden Snake","Classic snake controls.","Arcade"],
+
+    ["pong","🏓","Pocket Pong","Return the ball.","Arcade"],
+
+    ["breakout","🧱","Star Breaker","Break the blocks.","Arcade"],
+
+    ["maze","🗺️","Tiny Maze","Find the exit.","Puzzle"]
+
+];
+
+$("#gamesGrid").innerHTML =
+    gameDefinitions
+        .map(game => {
+
+            return `
+<article class="game-card">
+
+<span class="game-tag">
+${game[4]}
+</span>
+
+<span class="emoji">
+${game[1]}
+</span>
+
+<b>
+${game[2]}
+</b>
+
+<p>
+${game[3]}
+</p>
+
+<button data-game="${game[0]}">
+Play
+</button>
+
+</article>
+`;
+
+        })
+        .join("");
+
+
+let selectedGame = null;
+let gameScore = 0;
+let gameTime = 20;
+let gameTimer = null;
+let gameCleanup = () => {};
+let gameRunning = false;
+
+let bestScore =
+    storage.get(
+        "nikhilOS_bestScore",
+        0
+    );
+
+$("#bestScore").textContent =
+    bestScore;
+
+
+function updateGameScore(value) {
+
+    gameScore = value;
+
+    $("#gameScore").textContent =
+        gameScore;
 }
 
-.memory-card.open{
-background:white;
-color:var(--ink);
-border:1px solid var(--line);
+
+function startGameTimer(seconds) {
+
+    clearInterval(gameTimer);
+
+    gameTime = seconds;
+
+    $("#gameTime").textContent =
+        gameTime;
+
+    gameTimer =
+        setInterval(() => {
+
+            gameTime--;
+
+            $("#gameTime").textContent =
+                gameTime;
+
+            if (gameTime <= 0) {
+                finishGame();
+            }
+
+        }, 1000);
 }
 
-.math-game{
-text-align:center;
-padding-top:55px;
+
+function finishGame(message = "Time's up! ✨") {
+
+    if (!gameRunning) return;
+
+    gameRunning = false;
+
+    clearInterval(gameTimer);
+
+    gameCleanup();
+
+    if (gameScore > bestScore) {
+
+        bestScore =
+            gameScore;
+
+        storage.set(
+            "nikhilOS_bestScore",
+            bestScore
+        );
+
+        $("#bestScore").textContent =
+            bestScore;
+    }
+
+    $("#gameMessage").textContent =
+        message +
+        " Score: " +
+        gameScore;
 }
 
-.math-question{
+
+function resetArena() {
+
+    const arena =
+        $("#gameArena");
+
+    arena.innerHTML = `
+<div id="gameMessage" class="game-message">
+Get ready...
+</div>
+`;
+
+    return arena;
+}
+
+
+function randomPosition() {
+
+    return [
+        5 + Math.random() * 85,
+        8 + Math.random() * 78
+    ];
+}
+
+
+function placeElement(element) {
+
+    const [
+        x,
+        y
+    ] = randomPosition();
+
+    element.style.left =
+        x + "%";
+
+    element.style.top =
+        y + "%";
+}
+
+
+$$("[data-game]").forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                launchGame(
+                    button.dataset.game
+                );
+            }
+        );
+
+    }
+);
+
+
+function launchGame(id) {
+
+    selectedGame = id;
+
+    const definition =
+        gameDefinitions.find(
+            game => game[0] === id
+        );
+
+    if (!definition) return;
+
+    openWindow(
+        "gamePlayWindow"
+    );
+
+    $("#gameTitle").textContent =
+        definition[2];
+
+    $("#gameDescription").textContent =
+        definition[3];
+
+    updateGameScore(0);
+
+    clearInterval(gameTimer);
+
+    gameCleanup();
+
+    gameRunning = true;
+
+    const games = {
+
+        reaction: gameReaction,
+
+        stars: gameMovingTarget,
+
+        ball: gameMovingTarget,
+
+        neko: gameMovingTarget,
+
+        balloon: gameMovingTarget,
+
+        fish: gameMovingTarget,
+
+        crystal: gameMovingTarget,
+
+        memory: gameMemory,
+
+        math: gameMath,
+
+        color: gameColor,
+
+        whack: gameWhack,
+
+        typing: gameTyping,
+
+        sequence: gameSequence,
+
+        runner: gameRunner,
+
+        frog: gameRunner,
+
+        dodge: gameDodge,
+
+        rocket: gameDodge,
+
+        duck: gameDodge,
+
+        snake: gameSnake,
+
+        pong: gamePong,
+
+        breakout: gameBreakout,
+
+        maze: gameMaze
+
+    };
+
+    games[id]();
+}
+
+
+$("#startGame").addEventListener(
+    "click",
+    () => {
+
+        if (selectedGame) {
+            launchGame(
+                selectedGame
+            );
+        }
+
+    }
+);
+
+
+$("#restartGame").addEventListener(
+    "click",
+    () => {
+
+        if (selectedGame) {
+            launchGame(
+                selectedGame
+            );
+        }
+
+    }
+);
+
+
+$("#backToGames").addEventListener(
+    "click",
+    () => {
+
+        clearInterval(gameTimer);
+
+        gameCleanup();
+
+        openWindow(
+            "gamesWindow"
+        );
+    }
+);
+
+
+/* =========================================
+   GAME 1 — REACTION
+========================================= */
+
+function gameReaction() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Wait...";
+
+    let ready = false;
+    let finished = false;
+
+    const delay =
+        1200 +
+        Math.random() * 2500;
+
+    const timeout =
+        setTimeout(() => {
+
+            if (!gameRunning) return;
+
+            ready = true;
+
+            message.textContent =
+                "GO!";
+
+            const target =
+                document.createElement(
+                    "button"
+                );
+
+            target.className =
+                "game-target";
+
+            target.textContent =
+                "⚡";
+
+            target.style.background =
+                "#74d99b";
+
+            target.style.left =
+                "46%";
+
+            target.style.top =
+                "42%";
+
+            arena.appendChild(
+                target
+            );
+
+            target.addEventListener(
+                "click",
+                () => {
+
+                    if (finished) return;
+
+                    finished = true;
+
+                    updateGameScore(
+                        10
+                    );
+
+                    clearInterval(
+                        gameTimer
+                    );
+
+                    gameRunning = false;
+
+                    message.textContent =
+                        "Lightning fast! ⚡";
+                }
+            );
+
+        }, delay);
+
+    arena.addEventListener(
+        "click",
+        event => {
+
+            if (
+                !ready &&
+                event.target === arena
+            ) {
+
+                clearTimeout(
+                    timeout
+                );
+
+                gameRunning = false;
+
+                clearInterval(
+                    gameTimer
+                );
+
+                message.textContent =
+                    "Too early! 😭";
+            }
+
+        }
+    );
+
+    startGameTimer(7);
+
+    gameCleanup = () => {
+
+        clearTimeout(timeout);
+
+        arena.onclick = null;
+    };
+}
+
+
+/* =========================================
+   MOVING TARGET GAMES
+========================================= */
+
+function gameMovingTarget() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Catch it!";
+
+    const target =
+        document.createElement(
+            "button"
+        );
+
+    target.className =
+        "game-target";
+
+    const emojis = {
+
+        stars:"⭐",
+
+        ball:"🏀",
+
+        neko:"🐱",
+
+        balloon:"🎈",
+
+        fish:"🐟",
+
+        crystal:"💎"
+
+    };
+
+    target.textContent =
+        emojis[selectedGame] ||
+        "✨";
+
+    arena.appendChild(
+        target
+    );
+
+    function move() {
+        placeElement(target);
+    }
+
+    target.addEventListener(
+        "click",
+        () => {
+
+            updateGameScore(
+                gameScore + 1
+            );
+
+            move();
+
+        }
+    );
+
+    move();
+
+    startGameTimer(20);
+
+    gameCleanup = () => {
+        target.remove();
+    };
+}
+
+
+/* =========================================
+   MEMORY
+========================================= */
+
+function gameMemory() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Find the pairs!";
+
+    const values = [
+        "🌸","🌸",
+        "⭐","⭐",
+        "🐱","🐱",
+        "🍀","🍀",
+        "💎","💎",
+        "🌙","🌙",
+        "🍓","🍓",
+        "🦋","🦋"
+    ].sort(
+        () => Math.random() - .5
+    );
+
+    const board =
+        document.createElement(
+            "div"
+        );
+
+    board.className =
+        "memory-board";
+
+    arena.appendChild(
+        board
+    );
+
+    let selected = [];
+    let matches = 0;
+    let locked = false;
+
+    values.forEach(value => {
+
+        const card =
+            document.createElement(
+                "button"
+            );
+
+        card.className =
+            "memory-card";
+
+        card.textContent =
+            "?";
+
+        card.dataset.value =
+            value;
+
+        board.appendChild(
+            card
+        );
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    locked ||
+                    selected.includes(card) ||
+                    card.classList.contains("open")
+                ) {
+                    return;
+                }
+
+                card.classList.add("open");
+
+                card.textContent =
+                    value;
+
+                selected.push(card);
+
+                if (
+                    selected.length === 2
+                ) {
+
+                    locked = true;
+
+                    if (
+                        selected[0]
+                            .dataset.value ===
+                        selected[1]
+                            .dataset.value
+                    ) {
+
+                        matches++;
+
+                        updateGameScore(
+                            matches * 2
+                        );
+
+                        selected = [];
+
+                        locked = false;
+
+                        if (
+                            matches === 8
+                        ) {
+
+                            clearInterval(
+                                gameTimer
+                            );
+
+                            gameRunning = false;
+
+                            message.textContent =
+                                "Garden complete! 🌸";
+                        }
+
+                    } else {
+
+                        setTimeout(
+                            () => {
+
+                                selected.forEach(
+                                    item => {
+
+                                        item.classList.remove(
+                                            "open"
+                                        );
+
+                                        item.textContent =
+                                            "?";
+                                    }
+                                );
+
+                                selected = [];
+
+                                locked = false;
+
+                            },
+                            600
+                        );
+                    }
+                }
+
+            }
+        );
+
+    });
+
+    startGameTimer(40);
+
+    gameCleanup = () => {
+        board.remove();
+    };
+}
+
+
+/* =========================================
+   MATH
+========================================= */
+
+function gameMath() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Solve!";
+
+    const container =
+        document.createElement(
+            "div"
+        );
+
+    container.className =
+        "math-game";
+
+    const question =
+        document.createElement(
+            "div"
+        );
+
+    question.className =
+        "math-question";
+
+    const buttons =
+        document.createElement(
+            "div"
+        );
+
+    buttons.className =
+        "answer-buttons";
+
+    container.appendChild(
+        question
+    );
+
+    container.appendChild(
+        buttons
+    );
+
+    arena.appendChild(
+        container
+    );
+
+    function nextQuestion() {
+
+        const a =
+            Math.floor(
+                Math.random() * 12
+            ) + 1;
+
+        const b =
+            Math.floor(
+                Math.random() * 12
+            ) + 1;
+
+        const answer =
+            a + b;
+
+        question.textContent =
+            a +
+            " + " +
+            b +
+            " = ?";
+
+        buttons.innerHTML = "";
+
+        const choices = [
+            answer,
+            answer + 1,
+            answer - 1,
+            answer + 3
+        ].sort(
+            () => Math.random() - .5
+        );
+
+        choices.forEach(
+            choice => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.textContent =
+                    choice;
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            choice === answer
+                        ) {
+
+                            updateGameScore(
+                                gameScore + 1
+                            );
+
+                            nextQuestion();
+
+                        } else {
+
+                            message.textContent =
+                                "Try the next one!";
+
+                        }
+
+                    }
+                );
+
+                buttons.appendChild(
+                    button
+                );
+            }
+        );
+    }
+
+    nextQuestion();
+
+    startGameTimer(20);
+
+    gameCleanup = () => {
+        container.remove();
+    };
+}
+
+
+/* =========================================
+   COLOR
+========================================= */
+
+function gameColor() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    const colors = [
+        ["Pink","#ff79b1"],
+        ["Purple","#9b83ed"],
+        ["Blue","#70c9ed"],
+        ["Yellow","#ffd96b"]
+    ];
+
+    const container =
+        document.createElement(
+            "div"
+        );
+
+    container.className =
+        "math-game";
+
+    const question =
+        document.createElement(
+            "div"
+        );
+
+    question.className =
+        "math-question";
+
+    const buttons =
+        document.createElement(
+            "div"
+        );
+
+    buttons.className =
+        "answer-buttons";
+
+    container.appendChild(
+        question
+    );
+
+    container.appendChild(
+        buttons
+    );
+
+    arena.appendChild(
+        container
+    );
+
+    let current;
+
+    function next() {
+
+        current =
+            colors[
+                Math.floor(
+                    Math.random() *
+                    colors.length
+                )
+            ];
+
+        question.textContent =
+            "Tap " +
+            current[0];
+
+        buttons.innerHTML = "";
+
+        colors.forEach(
+            color => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.textContent =
+                    color[0];
+
+                button.style.background =
+                    color[1];
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            color[0] ===
+                            current[0]
+                        ) {
+
+                            updateGameScore(
+                                gameScore + 1
+                            );
+
+                            next();
+
+                        } else {
+
+                            message.textContent =
+                                "Wrong color! 🎨";
+                        }
+
+                    }
+                );
+
+                buttons.appendChild(
+                    button
+                );
+
+            }
+        );
+    }
+
+    next();
+
+    startGameTimer(20);
+
+    gameCleanup = () => {
+        container.remove();
+    };
+}
+
+
+/* =========================================
+   WHACK
+========================================= */
+
+function gameWhack() {
+
+    const arena =
+        resetArena();
+
+    const target =
+        document.createElement(
+            "button"
+        );
+
+    target.className =
+        "game-target";
+
+    target.textContent =
+        "🍡";
+
+    arena.appendChild(
+        target
+    );
+
+    function move() {
+        placeElement(target);
+    }
+
+    target.addEventListener(
+        "click",
+        () => {
+
+            updateGameScore(
+                gameScore + 1
+            );
+
+            move();
+        }
+    );
+
+    move();
+
+    startGameTimer(20);
+
+    gameCleanup = () => {
+        target.remove();
+    };
+}
+
+
+/* =========================================
+   TYPING
+========================================= */
+
+function gameTyping() {
+
+    const arena =
+        resetArena();
+
+    const container =
+        document.createElement(
+            "div"
+        );
+
+    container.className =
+        "typing-game";
+
+    container.innerHTML = `
+<div class="typing-word"></div>
+<input
+class="typing-input"
+autocomplete="off"
+spellcheck="false"
+placeholder="Type the word..."
+>
+`;
+
+    arena.appendChild(
+        container
+    );
+
+    const wordElement =
+        $(".typing-word", container);
+
+    const input =
+        $(".typing-input", container);
+
+    const words = [
+        "sakura",
+        "neko",
+        "starlight",
+        "sunshine",
+        "moon",
+        "rainbow",
+        "adventure",
+        "dream",
+        "forest",
+        "kindness",
+        "pixel",
+        "galaxy"
+    ];
+
+    let word;
+
+    function nextWord() {
+
+        word =
+            words[
+                Math.floor(
+                    Math.random() *
+                    words.length
+                )
+            ];
+
+        wordElement.textContent =
+            word;
+
+        input.value = "";
+
+        input.focus();
+    }
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            if (
+                input.value
+                    .toLowerCase() ===
+                word
+            ) {
+
+                updateGameScore(
+                    gameScore + 1
+                );
+
+                nextWord();
+            }
+
+        }
+    );
+
+    nextWord();
+
+    startGameTimer(25);
+
+    gameCleanup = () => {
+        container.remove();
+    };
+}
+
+
+/* =========================================
+   SEQUENCE
+========================================= */
+
+function gameSequence() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    const colors = [
+        "🔴",
+        "🔵",
+        "🟡",
+        "🟢"
+    ];
+
+    const buttons =
+        document.createElement(
+            "div"
+        );
+
+    buttons.className =
+        "answer-buttons";
+
+    arena.appendChild(
+        buttons
+    );
+
+    let sequence = [];
+    let playerSequence = [];
+    let round = 3;
+
+    function createSequence() {
+
+        sequence = [];
+
+        playerSequence = [];
+
+        for (
+            let i = 0;
+            i < round;
+            i++
+        ) {
+
+            sequence.push(
+                colors[
+                    Math.floor(
+                        Math.random() *
+                        colors.length
+                    )
+                ]
+            );
+        }
+
+        message.textContent =
+            "Watch...";
+
+        sequence.forEach(
+            (item, index) => {
+
+                setTimeout(
+                    () => {
+
+                        message.textContent =
+                            item;
+
+                    },
+                    index * 550
+                );
+
+            }
+        );
+
+        setTimeout(
+            () => {
+
+                message.textContent =
+                    "Repeat it!";
+
+                buttons.innerHTML = "";
+
+                colors.forEach(
+                    (color, index) => {
+
+                        const button =
+                            document.createElement(
+                                "button"
+                            );
+
+                        button.textContent =
+                            color;
+
+                        button.addEventListener(
+                            "click",
+                            () => {
+
+                                playerSequence.push(
+                                    colors[index]
+                                );
+
+                                const position =
+                                    playerSequence.length - 1;
+
+                                if (
+                                    playerSequence[position] !==
+                                    sequence[position]
+                                ) {
+
+                                    clearInterval(
+                                        gameTimer
+                                    );
+
+                                    gameRunning = false;
+
+                                    message.textContent =
+                                        "Oops! Sequence broken.";
+
+                                    return;
+                                }
+
+                                if (
+                                    playerSequence.length ===
+                                    sequence.length
+                                ) {
+
+                                    updateGameScore(
+                                        gameScore + round
+                                    );
+
+                                    round++;
+
+                                    setTimeout(
+                                        createSequence,
+                                        400
+                                    );
+                                }
+
+                            }
+                        );
+
+                        buttons.appendChild(
+                            button
+                        );
+
+                    }
+                );
+
+            },
+            round * 550 + 300
+        );
+    }
+
+    createSequence();
+
+    startGameTimer(40);
+
+    gameCleanup = () => {
+        buttons.remove();
+    };
+}
+
+
+/* =========================================
+   RUNNER / FROG
+========================================= */
+
+function gameRunner() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Press SPACE, ↑ or tap to jump!";
+
+    const player =
+        document.createElement(
+            "div"
+        );
+
+    player.textContent =
+        selectedGame === "frog"
+            ? "🐸"
+            : "🏃";
+
+    player.style.cssText =
+        `
+position:absolute;
+left:12%;
+bottom:18px;
 font-size:38px;
-font-weight:900;
-}
+transition:bottom .15s;
+`;
 
-.answer-buttons{
-display:flex;
-justify-content:center;
-gap:8px;
-flex-wrap:wrap;
-margin-top:22px;
-}
+    const obstacle =
+        document.createElement(
+            "div"
+        );
 
-.answer-buttons button{
-border:0;
-border-radius:13px;
-padding:11px 18px;
-background:white;
-font-weight:900;
-}
+    obstacle.textContent =
+        selectedGame === "frog"
+            ? "🪨"
+            : "🌵";
 
-.typing-game{
-text-align:center;
-padding-top:70px;
-}
-
-.typing-word{
-font-size:34px;
-font-weight:900;
-letter-spacing:2px;
-}
-
-.typing-input{
-width:min(420px,85%);
-margin-top:20px;
-padding:13px;
-border:1px solid var(--line);
-border-radius:13px;
-outline:none;
-text-align:center;
-background:white;
-}
-
-.game-canvas{
-display:block;
-width:100%;
-height:100%;
-}
-
-.github-search{
-display:flex;
-gap:8px;
-}
-
-.github-search input{
-flex:1;
-border:1px solid var(--line);
-border-radius:13px;
-padding:11px;
-background:rgba(255,255,255,.7);
-outline:none;
-}
-
-.github-profile{
-margin-top:14px;
-}
-
-.github-card{
-padding:18px;
-border-radius:20px;
-background:rgba(255,255,255,.64);
-border:1px solid var(--line);
-}
-
-.github-main{
-display:flex;
-align-items:center;
-gap:15px;
-}
-
-.github-main img{
-width:76px;
-height:76px;
-border-radius:22px;
-border:4px solid white;
-}
-
-.github-main h2{
-margin:0;
-font-size:21px;
-}
-
-.github-main p{
-font-size:10px;
-color:var(--muted);
-margin:4px 0;
-}
-
-.github-stats{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:8px;
-margin-top:14px;
-}
-
-.github-stat{
-padding:11px;
-border-radius:13px;
-background:rgba(255,255,255,.72);
-text-align:center;
-}
-
-.github-stat b,
-.github-stat small{
-display:block;
-}
-
-.github-stat small{
-font-size:8px;
-color:var(--muted);
-}
-
-.repo-list{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:8px;
-margin-top:12px;
-}
-
-.repo{
-padding:11px;
-border-radius:12px;
-background:rgba(255,255,255,.55);
-font-size:9px;
-}
-
-.repo b{
-display:block;
-font-size:10px;
-}
-
-.repo span{
-color:var(--muted);
-}
-
-.empty{
-padding:30px;
-border-radius:17px;
-background:rgba(255,255,255,.5);
-text-align:center;
-font-size:11px;
-color:var(--muted);
-}
-
-.chat-header{
-display:flex;
-align-items:center;
-gap:10px;
-padding:11px;
-border-radius:16px;
-background:rgba(255,255,255,.6);
-}
-
-.chat-avatar{
-width:40px;
-height:40px;
-display:grid;
-place-items:center;
-background:white;
-border-radius:13px;
-font-size:22px;
-}
-
-.chat-header b,
-.chat-header small{
-display:block;
-}
-
-.chat-header small{
-font-size:8px;
-color:var(--muted);
-margin-top:2px;
-}
-
-.chat-messages{
-height:350px;
-overflow:auto;
-padding:14px 5px;
-display:flex;
-flex-direction:column;
-gap:8px;
-}
-
-.bubble{
-max-width:78%;
-padding:10px 13px;
-border-radius:16px;
-background:white;
-align-self:flex-end;
-box-shadow:0 5px 16px rgba(60,40,80,.07);
-font-size:10px;
-}
-
-.bubble small{
-display:block;
-font-size:7px;
-color:var(--muted);
-margin-top:4px;
-}
-
-.chat-form{
-display:flex;
-gap:7px;
-}
-
-.chat-form input{
-flex:1;
-border:1px solid var(--line);
-border-radius:13px;
-padding:11px;
-outline:none;
-background:white;
-}
-
-.settings-list{
-display:grid;
-gap:8px;
-}
-
-.setting-row{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:13px 15px;
-border-radius:15px;
-background:rgba(255,255,255,.58);
-border:1px solid var(--line);
-}
-
-.setting-row b,
-.setting-row small{
-display:block;
-}
-
-.setting-row small{
-font-size:8px;
-color:var(--muted);
-margin-top:3px;
-}
-
-.toggle{
-position:relative;
-width:46px;
-height:25px;
-}
-
-.toggle input{
-display:none;
-}
-
-.toggle span{
+    obstacle.style.cssText =
+        `
 position:absolute;
-inset:0;
-border-radius:99px;
-background:#c7c1cf;
-transition:.2s;
+right:-10%;
+bottom:17px;
+font-size:30px;
+`;
+
+    arena.appendChild(
+        player
+    );
+
+    arena.appendChild(
+        obstacle
+    );
+
+    let jumping = false;
+    let x = 100;
+
+    function jump() {
+
+        if (
+            jumping ||
+            !gameRunning
+        ) {
+            return;
+        }
+
+        jumping = true;
+
+        player.style.bottom =
+            "125px";
+
+        setTimeout(
+            () => {
+
+                player.style.bottom =
+                    "18px";
+
+                setTimeout(
+                    () => {
+                        jumping = false;
+                    },
+                    150
+                );
+
+            },
+            300
+        );
+    }
+
+    function keyboard(event) {
+
+        if (
+            event.code === "Space" ||
+            event.key === "ArrowUp"
+        ) {
+            jump();
+        }
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    arena.addEventListener(
+        "pointerdown",
+        jump
+    );
+
+    const loop =
+        setInterval(
+            () => {
+
+                x -= 2.4;
+
+                if (x < -10) {
+
+                    x = 100;
+
+                    updateGameScore(
+                        gameScore + 1
+                    );
+                }
+
+                obstacle.style.right =
+                    (100 - x) + "%";
+
+                if (
+                    x < 22 &&
+                    x > 5 &&
+                    !jumping
+                ) {
+
+                    finishGame(
+                        "Bonk! 💥"
+                    );
+                }
+
+            },
+            45
+        );
+
+    startGameTimer(25);
+
+    gameCleanup = () => {
+
+        clearInterval(loop);
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        player.remove();
+
+        obstacle.remove();
+    };
 }
 
-.toggle span:after{
-content:"";
+
+/* =========================================
+   DODGE / ROCKET / DUCK
+========================================= */
+
+function gameDodge() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    message.textContent =
+        "Move with ← → or your mouse.";
+
+    const player =
+        document.createElement(
+            "div"
+        );
+
+    player.textContent =
+        selectedGame === "rocket"
+            ? "🚀"
+            : selectedGame === "duck"
+                ? "🦆"
+                : "🛸";
+
+    player.style.cssText =
+        `
 position:absolute;
-left:3px;
-top:3px;
-width:19px;
-height:19px;
-border-radius:50%;
-background:white;
-transition:.2s;
-}
-
-.toggle input:checked + span{
-background:
-linear-gradient(
-135deg,
-var(--accent),
-var(--accent2)
-);
-}
-
-.toggle input:checked + span:after{
-transform:translateX(21px);
-}
-
-.settings-window h3{
-font-size:13px;
-margin:18px 0 9px;
-}
-
-.theme-picker{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:8px;
-}
-
-.theme-card{
-border:2px solid transparent;
-border-radius:15px;
-padding:13px 7px;
-background:rgba(255,255,255,.62);
-color:var(--ink);
-font-size:25px;
-}
-
-.theme-card b,
-.theme-card small{
-display:block;
-}
-
-.theme-card b{
-font-size:10px;
-margin-top:5px;
-}
-
-.theme-card small{
-font-size:7px;
-color:var(--muted);
-margin-top:2px;
-}
-
-.theme-card.active{
-border-color:var(--accent);
-box-shadow:0 0 0 3px rgba(255,117,173,.12);
-}
-
-.deed-box{
-display:flex;
-align-items:center;
-gap:10px;
-margin-top:13px;
-padding:13px;
-border-radius:17px;
-background:
-linear-gradient(
-135deg,
-rgba(255,237,177,.7),
-rgba(255,255,255,.55)
-);
-border:1px solid var(--line);
-}
-
-.deed-box > span{
-font-size:28px;
-}
-
-.deed-box div{
-flex:1;
-}
-
-.deed-box b{
-font-size:10px;
-}
-
-.deed-box p{
-font-size:8px;
-color:var(--muted);
-margin:3px 0 0;
-}
-
-.deed-box button{
-padding:8px 10px;
-font-size:8px;
-}
-
-.settings-bottom{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-top:13px;
-font-size:8px;
-color:var(--muted);
-}
-
-.gallery-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
-}
-
-.gallery-card{
-overflow:hidden;
-border-radius:17px;
-background:white;
-border:1px solid var(--line);
-box-shadow:0 8px 20px rgba(70,50,90,.08);
-transition:.2s;
-}
-
-.gallery-card:hover{
-transform:translateY(-4px);
-}
-
-.gallery-card img{
-width:100%;
-aspect-ratio:1.25;
-display:block;
-object-fit:cover;
-}
-
-.gallery-card b{
-display:block;
-font-size:9px;
-padding:9px 10px 1px;
-}
-
-.gallery-card small{
-display:block;
-font-size:7px;
-padding:2px 10px 10px;
-color:var(--muted);
-}
-
-.dock{
-position:absolute;
-left:50%;
+left:48%;
 bottom:15px;
-transform:translateX(-50%);
-height:66px;
-padding:9px 11px;
-border-radius:23px;
-display:flex;
-align-items:center;
-gap:7px;
-z-index:40;
-}
+font-size:36px;
+`;
 
-.dock-button{
-width:47px;
-height:47px;
-border:0;
-border-radius:15px;
-background:rgba(255,255,255,.7);
-font-size:23px;
-transition:.2s;
-}
+    arena.appendChild(
+        player
+    );
 
-.dock-button:hover{
-transform:translateY(-5px) scale(1.05);
-}
+    let playerX = 48;
 
-.music-status{
-display:flex;
-align-items:center;
-gap:7px;
-padding-left:9px;
-border-left:1px solid var(--line);
-}
+    const objects = [];
 
-.music-status > span{
-font-size:21px;
-}
+    function movePlayer(value) {
 
-.music-status b,
-.music-status small{
-display:block;
-}
+        playerX =
+            Math.max(
+                3,
+                Math.min(
+                    92,
+                    value
+                )
+            );
 
-.music-status b{
-font-size:8px;
-}
+        player.style.left =
+            playerX + "%";
+    }
 
-.music-status small{
-font-size:7px;
-color:var(--muted);
-}
+    function keyboard(event) {
 
-.fairy-scroll{
-position:fixed;
-right:22px;
-bottom:95px;
-width:56px;
-height:56px;
-border:0;
-border-radius:20px;
-background:rgba(255,255,255,.78);
-box-shadow:0 15px 35px rgba(60,40,90,.2);
-font-size:26px;
-z-index:60;
-opacity:0;
-transform:translateY(15px) scale(.8);
-pointer-events:none;
-transition:.25s;
-}
+        if (
+            event.key ===
+            "ArrowLeft"
+        ) {
 
-.fairy-scroll.visible{
-opacity:1;
-transform:none;
-pointer-events:auto;
-}
+            movePlayer(
+                playerX - 5
+            );
+        }
 
-.fairy-scroll span{
+        if (
+            event.key ===
+            "ArrowRight"
+        ) {
+
+            movePlayer(
+                playerX + 5
+            );
+        }
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    arena.addEventListener(
+        "pointermove",
+        event => {
+
+            const rect =
+                arena.getBoundingClientRect();
+
+            const value =
+                (
+                    (event.clientX -
+                        rect.left) /
+                    rect.width
+                ) * 100;
+
+            movePlayer(value);
+        }
+    );
+
+    const spawn =
+        setInterval(
+            () => {
+
+                const object =
+                    document.createElement(
+                        "div"
+                    );
+
+                object.textContent =
+                    selectedGame === "duck"
+                        ? "🪨"
+                        : "☄️";
+
+                object.style.cssText =
+                    `
 position:absolute;
-right:6px;
-top:4px;
-font-size:10px;
-animation:spin 2s linear infinite;
-}
-
-.sleep-overlay{
-position:absolute;
-inset:0;
-display:none;
-place-items:center;
-z-index:100;
-background:rgba(25,20,45,.72);
-backdrop-filter:blur(9px);
-color:white;
-text-align:center;
-}
-
-.sleep-overlay.active{
-display:grid;
-}
-
-.sleep-icon{
-font-size:75px;
-}
-
-.sleep-overlay h2{
-margin:5px 0;
-}
-
-.sleep-overlay p{
-font-size:10px;
-opacity:.75;
-}
-
-.boot-screen{
-position:fixed;
-inset:0;
-z-index:999;
-display:grid;
-place-items:center;
-background:
-linear-gradient(
-135deg,
-#9b83ed,
-#ff8fb8 55%,
-#7ac9ed
-);
-color:white;
-text-align:center;
-}
-
-.boot-mascot{
-position:absolute;
-top:24%;
-font-size:100px;
-animation:float 2s infinite;
-}
-
-.boot-title{
-position:absolute;
-top:43%;
-}
-
-.boot-title h1{
-font-size:43px;
-margin:0;
-}
-
-.boot-title p{
-font-size:11px;
-}
-
-.loading-line{
-width:230px;
-height:5px;
-background:rgba(255,255,255,.25);
-border-radius:99px;
-overflow:hidden;
-margin:auto;
-}
-
-.loading-line span{
-display:block;
-height:100%;
-width:0;
-background:white;
-animation:loading 1.7s forwards;
-}
-
-.boot-stars{
-position:absolute;
-width:200px;
-height:200px;
-border:1px solid rgba(255,255,255,.35);
-border-radius:50%;
-animation:spin 8s linear infinite;
-}
-
-.boot-stars span{
-position:absolute;
-font-size:22px;
-}
-
-.boot-stars span:nth-child(1){
-top:-12px;
-left:50%;
-}
-
-.boot-stars span:nth-child(2){
-right:-4px;
-top:45%;
-}
-
-.boot-stars span:nth-child(3){
-bottom:0;
-left:44%;
-}
-
-body.theme-dark{
---ink:#f7f1ff;
---muted:#c9bfd9;
---glass:rgba(35,29,57,.7);
---line:rgba(255,255,255,.12);
---accent:#ff8fc3;
---accent2:#9586ff;
-}
-
-.theme-dark .desktop{
-background:
-linear-gradient(
-180deg,
-#211d3d,
-#443c6d 56%,
-#1e403a
-);
-}
-
-.theme-dark .sun{
-opacity:0;
-}
-
-.theme-dark .moon{
-opacity:1;
-}
-
-.theme-dark .cloud{
-opacity:.1;
-}
-
-.theme-dark .building{
-background:
-linear-gradient(
-160deg,
-rgba(30,29,55,.9),
-rgba(48,57,82,.85)
-);
-}
-
-.theme-dark .desktop-icon,
-.theme-dark .game-card,
-.theme-dark .file-card,
-.theme-dark .window-banner,
-.theme-dark .setting-row,
-.theme-dark .theme-card,
-.theme-dark .github-card,
-.theme-dark .github-stat,
-.theme-dark .repo,
-.theme-dark .chat-header{
-background:rgba(255,255,255,.08);
-color:var(--ink);
-}
-
-.theme-dark .window-header{
-background:rgba(255,255,255,.05);
-}
-
-.theme-yellow{
---accent:#eaa51f;
---accent2:#ed725f;
-}
-
-.theme-yellow .desktop{
-background:
-linear-gradient(
-180deg,
-#ffe89a,
-#fff6d9 58%,
-#c8e7b3
-);
-}
-
-.theme-pink{
---accent:#ff5fa4;
---accent2:#b56af2;
-}
-
-.theme-pink .desktop{
-background:
-linear-gradient(
-180deg,
-#ffc6df,
-#fff0f8 58%,
-#cbe9d0
-);
-}
-
-@keyframes float{
-0%,100%{
-transform:translateY(0);
-}
-50%{
-transform:translateY(-10px);
-}
-}
-
-@keyframes cloudMove{
-from{
-transform:translateX(0);
-}
-to{
-transform:translateX(calc(100vw + 600px));
-}
-}
-
-@keyframes windowOpen{
-from{
-opacity:0;
-transform:translateX(-50%) scale(.96);
-}
-to{
-opacity:1;
-transform:translateX(-50%) scale(1);
-}
-}
-
-@keyframes loading{
-to{
-width:100%;
-}
-}
-
-@keyframes spin{
-to{
-transform:rotate(360deg);
-}
-}
-
-@keyframes pop{
-from{
-transform:scale(.4);
-opacity:.2;
-}
-to{
-transform:scale(1);
-opacity:1;
-}
-}
-
-@keyframes pulse{
-50%{
-opacity:.35;
-}
-}
-
-@keyframes particleFall{
-from{
-transform:translateY(-50px) rotate(0);
-opacity:0;
-}
-15%{
-opacity:.8;
-}
-to{
-transform:translateY(105vh) rotate(360deg);
-opacity:0;
-}
-}
-
-@keyframes walk{
-0%{
-transform:translateX(-12vw) scaleX(1);
-}
-48%{
-transform:translateX(55vw) scaleX(1);
-}
-50%{
-transform:translateX(55vw) scaleX(-1);
-}
-100%{
-transform:translateX(-12vw) scaleX(-1);
-}
-}
-
-@media(max-width:900px){
-
-.welcome{
-left:4%;
-width:53vw;
-}
-
-.desktop-icons{
-right:3%;
-width:40%;
-grid-template-columns:repeat(2,1fr);
-}
-
-.games-grid{
-grid-template-columns:repeat(3,1fr);
-}
-
-.gallery-grid{
-grid-template-columns:repeat(3,1fr);
-}
-
-.music-status{
-display:none;
-}
-
-}
-
-@media(max-width:650px){
-
-.topbar{
-left:8px;
-right:8px;
-}
-
-.mood{
-display:none;
-}
-
-.system-info span:not(#clock){
-display:none;
-}
-
-.welcome{
-left:4%;
-width:92%;
-top:88px;
-padding:18px;
-}
-
-.welcome h1{
-font-size:28px;
-}
-
-.welcome-character{
-font-size:50px;
-}
-
-.desktop-icons{
-left:4%;
-right:4%;
-top:245px;
-width:auto;
-grid-template-columns:repeat(3,1fr);
-gap:7px;
-}
-
-.desktop-icon{
-min-height:80px;
-}
-
-.desktop-icon span{
+top:-35px;
 font-size:27px;
+`;
+
+                object.style.left =
+                    3 +
+                    Math.random() *
+                    90 +
+                    "%";
+
+                arena.appendChild(
+                    object
+                );
+
+                objects.push({
+                    element:object,
+                    y:-35,
+                    x:parseFloat(
+                        object.style.left
+                    )
+                });
+
+            },
+            550
+        );
+
+    const loop =
+        setInterval(
+            () => {
+
+                for (
+                    let i = objects.length - 1;
+                    i >= 0;
+                    i--
+                ) {
+
+                    const object =
+                        objects[i];
+
+                    object.y += 4;
+
+                    object.element.style.top =
+                        object.y + "px";
+
+                    if (
+                        object.y > 360
+                    ) {
+
+                        object.element.remove();
+
+                        objects.splice(
+                            i,
+                            1
+                        );
+
+                        updateGameScore(
+                            gameScore + 1
+                        );
+
+                        continue;
+                    }
+
+                    if (
+                        object.y > 285 &&
+                        Math.abs(
+                            object.x -
+                            playerX
+                        ) < 8
+                    ) {
+
+                        finishGame(
+                            "You got hit! 💫"
+                        );
+
+                        return;
+                    }
+                }
+
+            },
+            45
+        );
+
+    startGameTimer(25);
+
+    gameCleanup = () => {
+
+        clearInterval(spawn);
+        clearInterval(loop);
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        objects.forEach(
+            object => {
+                object.element.remove();
+            }
+        );
+
+        player.remove();
+    };
 }
 
-.desktop-icon small{
-display:none;
+
+/* =========================================
+   SNAKE
+========================================= */
+
+function gameSnake() {
+
+    const arena =
+        resetArena();
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.className =
+        "game-canvas";
+
+    canvas.width = 620;
+    canvas.height = 360;
+
+    arena.appendChild(
+        canvas
+    );
+
+    const context =
+        canvas.getContext("2d");
+
+    const size = 18;
+
+    const columns = 34;
+    const rows = 20;
+
+    let snake = [
+        {
+            x:10,
+            y:10
+        }
+    ];
+
+    let direction = {
+        x:1,
+        y:0
+    };
+
+    let nextDirection =
+        direction;
+
+    let food = {
+        x:20,
+        y:10
+    };
+
+    function keyboard(event) {
+
+        if (
+            event.key === "ArrowUp" &&
+            direction.y !== 1
+        ) {
+
+            nextDirection = {
+                x:0,
+                y:-1
+            };
+        }
+
+        if (
+            event.key === "ArrowDown" &&
+            direction.y !== -1
+        ) {
+
+            nextDirection = {
+                x:0,
+                y:1
+            };
+        }
+
+        if (
+            event.key === "ArrowLeft" &&
+            direction.x !== 1
+        ) {
+
+            nextDirection = {
+                x:-1,
+                y:0
+            };
+        }
+
+        if (
+            event.key === "ArrowRight" &&
+            direction.x !== -1
+        ) {
+
+            nextDirection = {
+                x:1,
+                y:0
+            };
+        }
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    function draw() {
+
+        context.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        context.fillStyle =
+            "rgba(255,255,255,.55)";
+
+        context.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        context.font =
+            "18px sans-serif";
+
+        context.fillText(
+            "🍓",
+            food.x * size,
+            food.y * size + 17
+        );
+
+        snake.forEach(
+            (part,index) => {
+
+                context.fillText(
+                    index === 0
+                        ? "🐍"
+                        : "🟢",
+                    part.x * size,
+                    part.y * size + 17
+                );
+
+            }
+        );
+    }
+
+    const loop =
+        setInterval(
+            () => {
+
+                direction =
+                    nextDirection;
+
+                const head = {
+                    x:
+                        snake[0].x +
+                        direction.x,
+
+                    y:
+                        snake[0].y +
+                        direction.y
+                };
+
+                const hitWall =
+                    head.x < 0 ||
+                    head.y < 0 ||
+                    head.x >= columns ||
+                    head.y >= rows;
+
+                const hitSelf =
+                    snake.some(
+                        part =>
+                            part.x === head.x &&
+                            part.y === head.y
+                    );
+
+                if (
+                    hitWall ||
+                    hitSelf
+                ) {
+
+                    finishGame(
+                        "Snake took a nap! 🐍"
+                    );
+
+                    return;
+                }
+
+                snake.unshift(
+                    head
+                );
+
+                if (
+                    head.x === food.x &&
+                    head.y === food.y
+                ) {
+
+                    updateGameScore(
+                        gameScore + 1
+                    );
+
+                    food = {
+                        x:
+                            Math.floor(
+                                Math.random() *
+                                columns
+                            ),
+
+                        y:
+                            Math.floor(
+                                Math.random() *
+                                rows
+                            )
+                    };
+
+                } else {
+
+                    snake.pop();
+                }
+
+                draw();
+
+            },
+            120
+        );
+
+    draw();
+
+    startGameTimer(40);
+
+    gameCleanup = () => {
+
+        clearInterval(loop);
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        canvas.remove();
+    };
 }
 
-.window{
-top:8%;
-width:94vw;
-max-height:78vh;
+
+/* =========================================
+   PONG
+========================================= */
+
+function gamePong() {
+
+    const arena =
+        resetArena();
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.className =
+        "game-canvas";
+
+    canvas.width = 620;
+    canvas.height = 360;
+
+    arena.appendChild(
+        canvas
+    );
+
+    const context =
+        canvas.getContext("2d");
+
+    let paddleY = 145;
+
+    let ballX = 310;
+    let ballY = 180;
+
+    let velocityX = -4;
+    let velocityY = 3;
+
+    function keyboard(event) {
+
+        if (
+            event.key === "ArrowUp"
+        ) {
+            paddleY -= 20;
+        }
+
+        if (
+            event.key === "ArrowDown"
+        ) {
+            paddleY += 20;
+        }
+
+        paddleY =
+            Math.max(
+                0,
+                Math.min(
+                    290,
+                    paddleY
+                )
+            );
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    arena.addEventListener(
+        "pointermove",
+        event => {
+
+            const rect =
+                arena.getBoundingClientRect();
+
+            paddleY =
+                (
+                    (event.clientY -
+                        rect.top) /
+                    rect.height
+                ) * 360 - 35;
+
+            paddleY =
+                Math.max(
+                    0,
+                    Math.min(
+                        290,
+                        paddleY
+                    )
+                );
+        }
+    );
+
+    const loop =
+        setInterval(
+            () => {
+
+                ballX += velocityX;
+                ballY += velocityY;
+
+                if (
+                    ballY < 0 ||
+                    ballY > 350
+                ) {
+
+                    velocityY *= -1;
+                }
+
+                if (
+                    ballX > 570 &&
+                    ballY > paddleY &&
+                    ballY < paddleY + 70
+                ) {
+
+                    velocityX =
+                        -Math.abs(
+                            velocityX
+                        );
+
+                    updateGameScore(
+                        gameScore + 1
+                    );
+                }
+
+                if (
+                    ballX < 25
+                ) {
+
+                    ballX = 310;
+                    ballY = 180;
+
+                    velocityX = 4;
+
+                    updateGameScore(
+                        Math.max(
+                            0,
+                            gameScore - 1
+                        )
+                    );
+                }
+
+                context.clearRect(
+                    0,
+                    0,
+                    620,
+                    360
+                );
+
+                context.fillStyle =
+                    "rgba(255,255,255,.5)";
+
+                context.fillRect(
+                    0,
+                    0,
+                    620,
+                    360
+                );
+
+                context.fillStyle =
+                    "#9b83ed";
+
+                context.fillRect(
+                    14,
+                    paddleY,
+                    12,
+                    70
+                );
+
+                context.fillStyle =
+                    "#ff8fb8";
+
+                context.fillRect(
+                    594,
+                    145,
+                    12,
+                    70
+                );
+
+                context.beginPath();
+
+                context.arc(
+                    ballX,
+                    ballY,
+                    9,
+                    0,
+                    Math.PI * 2
+                );
+
+                context.fill();
+
+            },
+            30
+        );
+
+    startGameTimer(30);
+
+    gameCleanup = () => {
+
+        clearInterval(loop);
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        canvas.remove();
+    };
 }
 
-.large-window{
-width:96vw;
+
+/* =========================================
+   BREAKOUT
+========================================= */
+
+function gameBreakout() {
+
+    const arena =
+        resetArena();
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.className =
+        "game-canvas";
+
+    canvas.width = 620;
+    canvas.height = 360;
+
+    arena.appendChild(
+        canvas
+    );
+
+    const context =
+        canvas.getContext("2d");
+
+    let paddleX = 270;
+
+    let ballX = 310;
+    let ballY = 300;
+
+    let velocityX = 3;
+    let velocityY = -4;
+
+    const blocks = [];
+
+    for (
+        let row = 0;
+        row < 4;
+        row++
+    ) {
+
+        for (
+            let column = 0;
+            column < 9;
+            column++
+        ) {
+
+            blocks.push({
+                x:35 + column * 60,
+                y:35 + row * 27,
+                active:true
+            });
+
+        }
+    }
+
+    function keyboard(event) {
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+            paddleX -= 25;
+        }
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+            paddleX += 25;
+        }
+
+        paddleX =
+            Math.max(
+                0,
+                Math.min(
+                    540,
+                    paddleX
+                )
+            );
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    arena.addEventListener(
+        "pointermove",
+        event => {
+
+            const rect =
+                arena.getBoundingClientRect();
+
+            paddleX =
+                (
+                    (event.clientX -
+                        rect.left) /
+                    rect.width
+                ) * 620 - 40;
+
+            paddleX =
+                Math.max(
+                    0,
+                    Math.min(
+                        540,
+                        paddleX
+                    )
+                );
+        }
+    );
+
+    const loop =
+        setInterval(
+            () => {
+
+                ballX += velocityX;
+                ballY += velocityY;
+
+                if (
+                    ballX < 8 ||
+                    ballX > 612
+                ) {
+
+                    velocityX *= -1;
+                }
+
+                if (
+                    ballY < 8
+                ) {
+
+                    velocityY =
+                        Math.abs(
+                            velocityY
+                        );
+                }
+
+                if (
+                    ballY > 330 &&
+                    ballX > paddleX &&
+                    ballX < paddleX + 80
+                ) {
+
+                    velocityY =
+                        -Math.abs(
+                            velocityY
+                        );
+                }
+
+                if (
+                    ballY > 360
+                ) {
+
+                    ballX = 310;
+                    ballY = 300;
+
+                    velocityX = 3;
+                    velocityY = -4;
+
+                    updateGameScore(
+                        Math.max(
+                            0,
+                            gameScore - 1
+                        )
+                    );
+                }
+
+                blocks.forEach(
+                    block => {
+
+                        if (
+                            block.active &&
+                            ballX > block.x &&
+                            ballX <
+                                block.x + 50 &&
+                            ballY > block.y &&
+                            ballY <
+                                block.y + 17
+                        ) {
+
+                            block.active =
+                                false;
+
+                            velocityY *= -1;
+
+                            updateGameScore(
+                                gameScore + 1
+                            );
+                        }
+
+                    }
+                );
+
+                context.clearRect(
+                    0,
+                    0,
+                    620,
+                    360
+                );
+
+                blocks.forEach(
+                    block => {
+
+                        if (
+                            block.active
+                        ) {
+
+                            context.fillStyle =
+                                "#ff8fb8";
+
+                            context.fillRect(
+                                block.x,
+                                block.y,
+                                50,
+                                17
+                            );
+                        }
+                    }
+                );
+
+                context.fillStyle =
+                    "#9b83ed";
+
+                context.fillRect(
+                    paddleX,
+                    335,
+                    80,
+                    10
+                );
+
+                context.beginPath();
+
+                context.arc(
+                    ballX,
+                    ballY,
+                    8,
+                    0,
+                    Math.PI * 2
+                );
+
+                context.fill();
+
+            },
+            30
+        );
+
+    startGameTimer(45);
+
+    gameCleanup = () => {
+
+        clearInterval(loop);
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        canvas.remove();
+    };
 }
 
-.games-grid{
-grid-template-columns:repeat(2,1fr);
+
+/* =========================================
+   MAZE
+========================================= */
+
+function gameMaze() {
+
+    const arena =
+        resetArena();
+
+    const message =
+        $("#gameMessage");
+
+    const maze = [
+
+        ["S","0","1","0","0","0","0"],
+
+        ["0","0","1","0","1","1","0"],
+
+        ["1","0","0","0","0","1","0"],
+
+        ["1","1","1","1","0","1","0"],
+
+        ["0","0","0","0","0","0","E"]
+
+    ];
+
+    let player = {
+        row:0,
+        column:0
+    };
+
+    const board =
+        document.createElement(
+            "div"
+        );
+
+    board.style.cssText =
+        `
+display:grid;
+grid-template-columns:repeat(7,45px);
+gap:4px;
+justify-content:center;
+padding-top:50px;
+`;
+
+    arena.appendChild(
+        board
+    );
+
+    function drawMaze() {
+
+        board.innerHTML = "";
+
+        maze.forEach(
+            (row,rowIndex) => {
+
+                row.forEach(
+                    (cell,columnIndex) => {
+
+                        const tile =
+                            document.createElement(
+                                "div"
+                            );
+
+                        const playerHere =
+                            player.row === rowIndex &&
+                            player.column === columnIndex;
+
+                        tile.style.cssText =
+                            `
+width:45px;
+height:45px;
+border-radius:10px;
+display:grid;
+place-items:center;
+background:${
+    playerHere
+        ? "#ff8fb8"
+        : cell === "1"
+            ? "#786e88"
+            : "rgba(255,255,255,.65)"
+};
+`;
+
+                        if (
+                            playerHere
+                        ) {
+                            tile.textContent =
+                                "🧚";
+                        } else if (
+                            cell === "E"
+                        ) {
+                            tile.textContent =
+                                "🏁";
+                        }
+
+                        board.appendChild(
+                            tile
+                        );
+
+                    }
+                );
+
+            }
+        );
+    }
+
+    drawMaze();
+
+    function keyboard(event) {
+
+        let newRow =
+            player.row;
+
+        let newColumn =
+            player.column;
+
+        if (
+            event.key === "ArrowUp"
+        ) {
+            newRow--;
+        }
+
+        if (
+            event.key === "ArrowDown"
+        ) {
+            newRow++;
+        }
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+            newColumn--;
+        }
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+            newColumn++;
+        }
+
+        if (
+            newRow < 0 ||
+            newRow >= maze.length ||
+            newColumn < 0 ||
+            newColumn >= maze[0].length
+        ) {
+            return;
+        }
+
+        if (
+            maze[newRow][newColumn] === "1"
+        ) {
+            return;
+        }
+
+        player.row =
+            newRow;
+
+        player.column =
+            newColumn;
+
+        drawMaze();
+
+        if (
+            maze[newRow][newColumn] === "E"
+        ) {
+
+            updateGameScore(10);
+
+            clearInterval(
+                gameTimer
+            );
+
+            gameRunning = false;
+
+            message.textContent =
+                "You found the exit! 🏁";
+        }
+
+    }
+
+    document.addEventListener(
+        "keydown",
+        keyboard
+    );
+
+    startGameTimer(45);
+
+    gameCleanup = () => {
+
+        document.removeEventListener(
+            "keydown",
+            keyboard
+        );
+
+        board.remove();
+    };
 }
 
-.gallery-grid{
-grid-template-columns:repeat(2,1fr);
+
+/* =========================================
+   FAIRY SCROLL WAND
+========================================= */
+
+function checkScroll() {
+
+    const scrollPosition =
+        window.scrollY ||
+        document.documentElement.scrollTop;
+
+    $("#fairyScroll")
+        .classList.toggle(
+            "visible",
+            scrollPosition > 50
+        );
 }
 
-.file-grid{
-grid-template-columns:repeat(2,1fr);
-}
+window.addEventListener(
+    "scroll",
+    checkScroll,
+    {
+        passive:true
+    }
+);
 
-.theme-picker{
-grid-template-columns:repeat(2,1fr);
-}
+$("#fairyScroll").addEventListener(
+    "click",
+    () => {
 
-.game-arena{
-height:310px;
-}
+        window.scrollTo({
+            top:0,
+            behavior:"smooth"
+        });
 
-.dock{
-bottom:8px;
-height:57px;
-padding:6px;
-max-width:96vw;
-}
+        for (
+            let i = 0;
+            i < 8;
+            i++
+        ) {
 
-.dock-button{
-width:40px;
-height:40px;
-font-size:19px;
-}                  
+            setTimeout(
+                () => {
 
-.fairy-scroll{
-right:10px;
-bottom:75px;
-}
+                    const sparkle =
+                        document.createElement(
+                            "span"
+                        );
 
-.window-body{
-padding:12px;
-}
+                    sparkle.className =
+                        "particle";
 
-}
+                    sparkle.textContent =
+                        "✦";
+
+                    sparkle.style.left =
+                        88 +
+                        Math.random() *
+                        8 +
+                        "%";
+
+                    sparkle.style.top =
+                        70 +
+                        Math.random() *
+                        10 +
+                        "%";
+
+                    sparkle.style.setProperty(
+                        "--duration",
+                        "1.3s"
+                    );
+
+                    $("#particleLayer")
+                        .appendChild(
+                            sparkle
+                        );
+
+                    setTimeout(
+                        () =>
+                            sparkle.remove(),
+                        1400
+                    );
+
+                },
+                i * 70
+            );
+        }
+
+    }
+);
+
+
+/* =========================================
+   KEYBOARD SHORTCUTS
+========================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            $$(".window.active")
+                .forEach(
+                    windowElement => {
+                        windowElement
+                            .classList
+                            .remove("active");
+                    }
+                );
+        }
+
+        if (
+            event.ctrlKey &&
+            event.key.toLowerCase() === "s" &&
+            $("#notesWindow")
+                .classList
+                .contains("active")
+        ) {
+
+            event.preventDefault();
+
+            $("#saveNotes").click();
+        }
+
+    }
+);
+
+
+/* =========================================
+   LITTLE RANDOM MOOD
+========================================= */
+
+const moods = [
+    "✨ Something nice might happen.",
+    "🌸 Take a tiny break.",
+    "🦋 Keep exploring.",
+    "⭐ One small idea can become a big project.",
+    "🐱 Neko says hello.",
+    "🌱 Build something today.",
+    "🎮 Time for a quick game?",
+    "☁️ The little city is peaceful today."
+];
+
+setInterval(
+    () => {
+
+        if (
+            !document.hidden
+        ) {
+
+            $("#moodText").textContent =
+                moods[
+                    Math.floor(
+                        Math.random() *
+                        moods.length
+                    )
+                ];
+        }
+
+    },
+    12000
+);
