@@ -1,14 +1,3 @@
-// ==================== BACKGROUND MUSIC ====================
-
-const bgMusic = new Audio("assets/audio/music.mp3");
-
-bgMusic.loop = true;
-bgMusic.volume = 0.35;
-
-// Start music after the player's first click
-document.addEventListener("click", () => {
-    bgMusic.play().catch(() => {});
-}, { once: true });
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
@@ -252,39 +241,48 @@ $("#saveNotes").addEventListener("click", () => {
    MUSIC
 ========================================= */
 
-const music = $("#bgMusic");
+const music =
+    new Audio("assets/audio/music.mp3");
+
+music.loop = true;
+music.volume = 0.22;
 
 let musicEnabled =
-    storage.get("nikhilOS_music", true);
-
-music.volume = 0.22;
+    storage.get(
+        "nikhilOS_music",
+        true
+    );
 
 $("#soundToggle").checked =
     musicEnabled;
 
-async function startMusic() {
+function startMusic() {
 
-    if (!musicEnabled) return;
-
-    try {
-
-        await music.play();
-
-        $("#musicStatus").textContent =
-            "Music is ON";
-
-    } catch {
-
-        $("#musicStatus").textContent =
-            "Click once to start";
-
+    if (!musicEnabled) {
+        return;
     }
+
+    music.play()
+        .then(() => {
+
+            $("#musicStatus").textContent =
+                "Music is ON";
+
+        })
+        .catch(() => {
+
+            $("#musicStatus").textContent =
+                "Click once to start";
+
+        });
 }
 
 document.addEventListener(
     "pointerdown",
     startMusic,
-    { once: true }
+    {
+        once: true
+    }
 );
 
 $("#soundToggle").addEventListener(
@@ -300,15 +298,17 @@ $("#soundToggle").addEventListener(
         );
 
         if (musicEnabled) {
+
             startMusic();
+
         } else {
+
             music.pause();
+
+            $("#musicStatus").textContent =
+                "Music is OFF";
         }
 
-        $("#musicStatus").textContent =
-            musicEnabled
-                ? "Music is ON"
-                : "Music is OFF";
     }
 );
 
