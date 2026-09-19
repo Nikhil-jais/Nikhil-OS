@@ -1,4 +1,14 @@
+// ==================== BACKGROUND MUSIC ====================
 
+const bgMusic = new Audio("assets/audio/music.mp3");
+
+bgMusic.loop = true;
+bgMusic.volume = 0.35;
+
+// Start music after the player's first click
+document.addEventListener("click", () => {
+    bgMusic.play().catch(() => {});
+}, { once: true });
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
 
@@ -34,9 +44,9 @@ setTimeout(() => {
             bootScreen.remove();
         }, 500);
     }
-}, 1800);
+}, 1800);                                                                 
 
-
+     
 /* =========================================
    WINDOW SYSTEM
 ========================================= */
@@ -61,14 +71,14 @@ function openWindow(id) {
 }
 
 function closeWindow(windowElement) {
-
+                                
     if (!windowElement) return;
 
     windowElement.classList.remove("active");
 
     if (windowElement.id === "cameraWindow") {
         stopCamera();
-    }
+    }                                                                     
 
     if (windowElement.id === "videoWindow") {
         stopRecording();
@@ -78,7 +88,7 @@ function closeWindow(windowElement) {
 $$("[data-open]").forEach(button => {
 
     button.addEventListener("click", () => {
-        openWindow(button.dataset.open);
+        openWindow(button.dataset.open);                   
     });
 
 });
@@ -241,48 +251,39 @@ $("#saveNotes").addEventListener("click", () => {
    MUSIC
 ========================================= */
 
-const music =
-    new Audio("assets/audio/music.mp3");
-
-music.loop = true;
-music.volume = 0.22;
+const music = $("#bgMusic");
 
 let musicEnabled =
-    storage.get(
-        "nikhilOS_music",
-        true
-    );
+    storage.get("nikhilOS_music", true);
+
+music.volume = 0.22;
 
 $("#soundToggle").checked =
     musicEnabled;
 
-function startMusic() {
+async function startMusic() {
 
-    if (!musicEnabled) {
-        return;
+    if (!musicEnabled) return;
+
+    try {
+
+        await music.play();
+
+        $("#musicStatus").textContent =
+            "Music is ON";
+
+    } catch {
+
+        $("#musicStatus").textContent =
+            "Click once to start";
+
     }
-
-    music.play()
-        .then(() => {
-
-            $("#musicStatus").textContent =
-                "Music is ON";
-
-        })
-        .catch(() => {
-
-            $("#musicStatus").textContent =
-                "Click once to start";
-
-        });
 }
 
 document.addEventListener(
     "pointerdown",
     startMusic,
-    {
-        once: true
-    }
+    { once: true }
 );
 
 $("#soundToggle").addEventListener(
@@ -298,17 +299,15 @@ $("#soundToggle").addEventListener(
         );
 
         if (musicEnabled) {
-
             startMusic();
-
         } else {
-
             music.pause();
-
-            $("#musicStatus").textContent =
-                "Music is OFF";
         }
 
+        $("#musicStatus").textContent =
+            musicEnabled
+                ? "Music is ON"
+                : "Music is OFF";
     }
 );
 
@@ -432,38 +431,38 @@ function createParticle() {
             "✦",
             "✨",
             "🍃",
-            "🩷"
+            "🩷" 
         ][
-            Math.floor(
+            Math.floor(                       
                 Math.random() * 5
             )
         ];
-
+                                      
     particle.style.left =
-        Math.random() * 100 + "%";
+        Math.random() * 100 + 
 
     particle.style.top =
         "-30px";
 
     particle.style.setProperty(
         "--duration",
-        5 + Math.random() * 5 + "s"
+        5 + Math.random() * 5 + "s"   
     );
 
     particle.style.fontSize =
         9 + Math.random() * 12 + "px";
-
+             
     $("#particleLayer").appendChild(
         particle
     );
 
-    setTimeout(() => {
-        particle.remove();
-    }, 10000);
-}
+    setTimeout(() => {             
+    });</script>
+        particle.remove();              
+    }, 10000;
 
 function restartParticles() {
-
+   
     clearInterval(
         particleInterval
     );
@@ -492,7 +491,7 @@ $("#petalToggle").addEventListener(
             petalsEnabled
         );
 
-        restartParticles();
+        restartParticles();             
     }
 );
 
@@ -510,7 +509,7 @@ let animalsEnabled =
 $("#animalToggle").checked =
     animalsEnabled;
 
-const animals = [
+const animals = [                         
     "🐱",
     "🐰",
     "🦊",
@@ -520,7 +519,7 @@ const animals = [
     "🐶",
     "🦋"
 ];
-
+                                         
 function createAnimals() {
 
     $("#animalLayer").innerHTML = "";
@@ -585,7 +584,7 @@ $("#animalToggle").addEventListener(
     }
 );
 
-
+           
 /* =========================================
    GOOD DEEDS
 ========================================= */
@@ -593,7 +592,7 @@ $("#animalToggle").addEventListener(
 let goodDeeds =
     storage.get(
         "nikhilOS_goodDeeds",
-        0
+                                         
     );
 
 const goodDeedMessages = [
@@ -609,7 +608,7 @@ function updateDeeds() {
 
     $("#deedCount").textContent =
         "Good deeds: " + goodDeeds;
-}
+} 
 
 updateDeeds();
 
@@ -1027,7 +1026,7 @@ function createSceneSVG(scene) {
 
     const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
-<defs>
+<defs>                                                                       
 <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
 <stop stop-color="${color1}"/>
 <stop offset="1" stop-color="${color2}"/>
@@ -2005,7 +2004,7 @@ function gameMemory() {
                 }
 
                 card.classList.add("open");
-
+        
                 card.textContent =
                     value;
 
@@ -2046,7 +2045,7 @@ function gameMemory() {
 
                             message.textContent =
                                 "Garden complete! 🌸";
-                        }
+                        }         
 
                     } else {
 
@@ -2072,22 +2071,22 @@ function gameMemory() {
                             },
                             600
                         );
-                    }
+                    }  
                 }
 
             }
         );
-
+    
     });
 
     startGameTimer(40);
-
-    gameCleanup = () => {
+                
+    gameCleanup = () => {    
         board.remove();
     };
-}
-
-
+}             
+       
+                                 
 /* =========================================
    MATH
 ========================================= */
@@ -2095,13 +2094,13 @@ function gameMemory() {
 function gameMath() {
 
     const arena =
-        resetArena();
+        resetArena();              
 
     const message =
         $("#gameMessage");
 
     message.textContent =
-        "Solve!";
+        "Solve!";               
 
     const container =
         document.createElement(
@@ -4096,14 +4095,15 @@ document.addEventListener(
                 .contains("active")
         ) {
 
+
             event.preventDefault();
 
             $("#saveNotes").click();
         }
 
-    }
+    }     
 );
-
+   
 
 /* =========================================
    LITTLE RANDOM MOOD
@@ -4113,21 +4113,21 @@ const moods = [
     "✨ Something nice might happen.",
     "🌸 Take a tiny break.",
     "🦋 Keep exploring.",
-    "⭐ One small idea can become a big project.",
+    "⭐ One small idea can become a big project.",                                                                                        
     "🐱 Neko says hello.",
     "🌱 Build something today.",
     "🎮 Time for a quick game?",
     "☁️ The little city is peaceful today."
 ];
-
-setInterval(
+                 
+setInterval(                      
     () => {
-
+    
         if (
             !document.hidden
         ) {
 
-            $("#moodText").textContent =
+            $("#moodText").textContent =                 
                 moods[
                     Math.floor(
                         Math.random() *
@@ -4139,3 +4139,4 @@ setInterval(
     },
     12000
 );
+               
