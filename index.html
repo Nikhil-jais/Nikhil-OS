@@ -1,515 +1,822 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<meta name="theme-color" content="#070910">
-
-<title>NikhilOS — Digital Universe</title>
-
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#070914">
+    <title>NikhilOS</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- =========================
-     BOOT SCREEN
-========================= -->
+<!-- ================= BOOT SCREEN ================= -->
 
-<div id="boot">
-
-    <div class="boot-orbit">
-        <b>N</b>
-        <i></i>
+<div id="bootScreen">
+    <div class="boot-logo">
+        <div class="boot-orbit orbit-one"></div>
+        <div class="boot-orbit orbit-two"></div>
+        <div class="boot-core">N</div>
     </div>
 
-    <strong>NikhilOS</strong>
+    <h1>NikhilOS</h1>
+    <p>Little Universe</p>
 
-    <span>Digital Universe</span>
-
-    <div class="boot-bar">
-        <i></i>
+    <div class="boot-loader">
+        <div id="bootProgress"></div>
     </div>
 
-    <small id="bootText">
-        Preparing your workspace…
-    </small>
-
+    <span id="bootStatus">Starting system...</span>
 </div>
 
 
-<!-- =========================
-     DESKTOP
-========================= -->
+<!-- ================= DESKTOP ================= -->
 
 <div id="desktop">
 
-    <!-- BACKGROUND SCENE -->
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
 
-    <div class="scene">
+    <!-- TOP BAR -->
+    <header class="topbar">
 
-        <div class="stars"></div>
+        <div class="top-left">
+            <button class="system-logo" id="systemLogo">N</button>
+            <span class="top-title">NikhilOS</span>
 
-        <div class="nebula n1"></div>
-        <div class="nebula n2"></div>
-
-        <div class="moon"></div>
-
-        <div class="horizon"></div>
-
-        <div class="mountain m1"></div>
-        <div class="mountain m2"></div>
-
-        <div class="city"></div>
-
-        <div class="shooting"></div>
-
-    </div>
-
-
-    <!-- =========================
-         MAC STYLE MENU BAR
-    ========================= -->
-
-    <header class="menu">
-
-        <div class="menu-left">
-
-            <button class="brand" id="about">
-                N
+            <button class="menu-button" data-menu="systemMenu">
+                System
             </button>
 
-            <b>NikhilOS</b>
-
-            <button>File</button>
-            <button>Edit</button>
-            <button>View</button>
-            <button>Window</button>
-            <button>Help</button>
-
+            <button class="menu-button" data-menu="viewMenu">
+                View
+            </button>
         </div>
 
+        <div class="top-center">
+            <span id="topDate">Sunday, September 27</span>
+        </div>
 
-        <div class="menu-right">
+        <div class="top-right">
 
-            <span>⌁</span>
-
-            <span id="battery">
-                100%
+            <span class="status-item">
+                <span class="status-dot"></span>
+                Online
             </span>
 
-            <span id="clock">
-                12:00
-            </span>
+            <button class="status-button" id="soundButton">🔊</button>
+            <button class="status-button" id="controlButton">⌄</button>
 
-            <button id="cc">
-                ☰
-            </button>
+            <span id="topClock">17:43</span>
 
         </div>
 
     </header>
 
 
-    <!-- =========================
-         MAIN DESKTOP
-    ========================= -->
+    <!-- SYSTEM MENU -->
 
-    <main>
+    <div class="dropdown-menu" id="systemMenu">
+        <button data-action="about">About NikhilOS</button>
+        <button data-action="restart">Restart</button>
+        <button data-action="sleep">Sleep</button>
+    </div>
 
-        <section class="hero">
-
-            <div>
-
-                <small class="eyebrow">
-                    PERSONAL DIGITAL UNIVERSE
-                </small>
-
-                <div
-                    class="time"
-                    id="heroTime">
-                    12:00
-                </div>
-
-                <div
-                    class="date"
-                    id="heroDate">
-                    Tuesday, September 22
-                </div>
+    <div class="dropdown-menu" id="viewMenu">
+        <button data-action="toggleIcons">Toggle Desktop Icons</button>
+        <button data-action="wallpaper">Change Wallpaper</button>
+    </div>
 
 
-                <h1>
-                    Build something
-                    <br>
-                    <em>worth remembering.</em>
-                </h1>
+    <!-- DESKTOP ICONS -->
 
+    <main id="desktopIcons">
 
-                <p>
-                    Code, create, experiment, play —
-                    all in one quiet little corner of the internet.
-                </p>
+        <button class="desktop-icon" data-open="files">
+            <span class="desktop-icon-image">📁</span>
+            <span>Files</span>
+        </button>
 
+        <button class="desktop-icon" data-open="notes">
+            <span class="desktop-icon-image">📝</span>
+            <span>Notes</span>
+        </button>
 
-                <div class="hero-buttons">
+        <button class="desktop-icon" data-open="browser">
+            <span class="desktop-icon-image">🌐</span>
+            <span>Browser</span>
+        </button>
 
-                    <button
-                        class="primary"
-                        data-open="finder">
-                        ⌘ Explore
-                    </button>
+        <button class="desktop-icon" data-open="games">
+            <span class="desktop-icon-image">🎮</span>
+            <span>Games</span>
+        </button>
 
-                    <button
-                        data-open="arcade">
-                        ✦ Arcade
-                    </button>
+        <button class="desktop-icon" data-open="calculator">
+            <span class="desktop-icon-image">🧮</span>
+            <span>Calculator</span>
+        </button>
 
-                    <button
-                        data-open="notes">
-                        ✎ New note
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- SESSION CARD -->
-
-            <div class="session-card">
-
-                <div class="orb">
-
-                    <b>N</b>
-
-                    <i></i>
-
-                </div>
-
-                <small>
-                    THIS SESSION
-                </small>
-
-                <strong id="session">
-                    00:00:00
-                </strong>
-
-                <span>
-                    All systems ready
-                </span>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             DESKTOP APPLICATIONS
-        ========================= -->
-
-        <section class="apps">
-
-            <button data-open="finder">
-                <i class="finder">⌂</i>
-                <span>Finder</span>
-            </button>
-
-
-            <button data-open="notes">
-                <i class="notes">✎</i>
-                <span>Notes</span>
-            </button>
-
-
-            <button data-open="arcade">
-                <i class="arcade">✦</i>
-                <span>Arcade</span>
-            </button>
-
-
-            <button data-open="camera">
-                <i class="camera">◉</i>
-                <span>Camera</span>
-            </button>
-
-
-            <button data-open="studio">
-                <i class="studio">●</i>
-                <span>Studio</span>
-            </button>
-
-
-            <button data-open="terminal">
-                <i class="terminal">›_</i>
-                <span>Terminal</span>
-            </button>
-
-
-            <button data-open="music">
-                <i class="music">♫</i>
-                <span>Music</span>
-            </button>
-
-
-            <button data-open="activity">
-                <i class="activity">⌁</i>
-                <span>Activity</span>
-            </button>
-
-        </section>
+        <button class="desktop-icon" data-open="settings">
+            <span class="desktop-icon-image">⚙️</span>
+            <span>Settings</span>
+        </button>
 
     </main>
 
 
-    <!-- WINDOWS -->
-
-    <div id="windows"></div>
-
-
-    <!-- =========================
-         CONTROL CENTER
-    ========================= -->
-
-    <aside id="control">
-
-        <div class="cc-head">
-
-            <div>
-
-                <b>
-                    Control Center
-                </b>
-
-                <small>
-                    NikhilOS
-                </small>
-
-            </div>
-
-            <button id="closeCC">
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="network">
-
-            <b>⌁</b>
-
-            <div>
-
-                <strong>
-                    Wi-Fi
-                </strong>
-
-                <small>
-                    Connected
-                </small>
-
-            </div>
-
-            <span>
-                ›
-            </span>
-
-        </div>
-
-
-        <div class="cc-grid">
-
-            <button id="themeCC">
-
-                <b>◐</b>
-
-                <span>
-                    Appearance
-                </span>
-
-                <small>
-                    Midnight
-                </small>
-
-            </button>
-
-
-            <button id="musicCC">
-
-                <b>♫</b>
-
-                <span>
-                    Music
-                </span>
-
-                <small id="musicState">
-                    Off
-                </small>
-
-            </button>
-
-
-            <button id="motionCC">
-
-                <b>✧</b>
-
-                <span>
-                    Effects
-                </span>
-
-                <small>
-                    On
-                </small>
-
-            </button>
-
-
-            <button data-open="settings">
-
-                <b>⚙</b>
-
-                <span>
-                    Settings
-                </span>
-
-                <small>
-                    Open
-                </small>
-
-            </button>
-
-        </div>
-
-
-        <input
-            id="glow"
-            type="range"
-            min="20"
-            max="100"
-            value="72">
-
-    </aside>
-
-
-    <!-- =========================
-         DOCK
-    ========================= -->
-
-    <nav
-        class="dock"
-        id="dock">
-
-
-        <button data-open="finder">
-            <i class="finder">⌂</i>
-        </button>
-
-
-        <button data-open="notes">
-            <i class="notes">✎</i>
-        </button>
-
-
-        <button data-open="arcade">
-            <i class="arcade">✦</i>
-        </button>
-
-
-        <button data-open="camera">
-            <i class="camera">◉</i>
-        </button>
-
-
-        <button data-open="studio">
-            <i class="studio">●</i>
-        </button>
-
-
-        <button data-open="terminal">
-            <i class="terminal">›_</i>
-        </button>
-
-
-        <span></span>
-
-
-        <button data-open="music">
-            <i class="music">♫</i>
-        </button>
-
-
-        <button data-open="activity">
-            <i class="activity">⌁</i>
-        </button>
-
-
-        <button data-open="settings">
-            <i class="settings">⚙</i>
-        </button>
-
-
-    </nav>
-
-
-    <!-- TOAST -->
-
-    <div id="toast"></div>
-
-</div>
-
-
-<!-- =========================
-     WINDOW TEMPLATE
-========================= -->
-
-<template id="windowTemplate">
-
-    <section class="window">
-
-        <header>
-
-            <div class="traffic">
-
-                <button class="close">
-                    ×
+    <!-- WELCOME -->
+
+    <section class="welcome-card" id="welcomeCard">
+
+        <div class="welcome-glow"></div>
+
+        <div class="welcome-content">
+            <span class="welcome-small">WELCOME BACK</span>
+            <h2>Good evening, Shambhu.</h2>
+            <p>
+                Your little digital universe is ready.
+                Open an app from the dock or desktop.
+            </p>
+
+            <div class="welcome-actions">
+                <button class="primary-button" data-open="files">
+                    Explore Files
                 </button>
 
-                <button class="min">
-                    −
+                <button class="secondary-button" data-open="games">
+                    Play a Game
                 </button>
-
-                <button class="max">
-                    +
-                </button>
-
             </div>
+        </div>
 
-
-            <div class="win-title"></div>
-
-        </header>
-
-
-        <div class="win-body"></div>
+        <div class="welcome-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-ring ring-two"></div>
+            <div class="orb-core">N</div>
+        </div>
 
     </section>
 
-</template>
+
+    <!-- ================= WINDOWS ================= -->
+
+    <!-- FILES -->
+
+    <section class="app-window" id="window-files"
+             data-app="files"
+             style="left: 8%; top: 13%; width: 760px; height: 500px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                <span>📁</span>
+                Files
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="window-body files-body">
+
+            <aside class="sidebar">
+
+                <div class="sidebar-heading">Favourites</div>
+
+                <button class="sidebar-item active">
+                    <span>⭐</span>
+                    Home
+                </button>
+
+                <button class="sidebar-item">
+                    <span>🖥️</span>
+                    Desktop
+                </button>
+
+                <button class="sidebar-item">
+                    <span>📄</span>
+                    Documents
+                </button>
+
+                <button class="sidebar-item">
+                    <span>🖼️</span>
+                    Pictures
+                </button>
+
+                <button class="sidebar-item">
+                    <span>🎵</span>
+                    Music
+                </button>
+
+                <div class="sidebar-heading">Locations</div>
+
+                <button class="sidebar-item">
+                    <span>💾</span>
+                    NikhilOS Drive
+                </button>
+
+            </aside>
+
+            <div class="file-content">
+
+                <div class="file-header">
+                    <div>
+                        <h3>Home</h3>
+                        <span>6 items</span>
+                    </div>
+
+                    <button class="round-button">＋</button>
+                </div>
+
+                <div class="file-grid">
+
+                    <button class="file-card">
+                        <span class="file-card-icon">📂</span>
+                        <span>Projects</span>
+                        <small>Folder</small>
+                    </button>
+
+                    <button class="file-card">
+                        <span class="file-card-icon">📂</span>
+                        <span>Downloads</span>
+                        <small>Folder</small>
+                    </button>
+
+                    <button class="file-card">
+                        <span class="file-card-icon">📂</span>
+                        <span>Documents</span>
+                        <small>Folder</small>
+                    </button>
+
+                    <button class="file-card">
+                        <span class="file-card-icon">🖼️</span>
+                        <span>Wallpapers</span>
+                        <small>Folder</small>
+                    </button>
+
+                    <button class="file-card">
+                        <span class="file-card-icon">🎵</span>
+                        <span>Music</span>
+                        <small>Folder</small>
+                    </button>
+
+                    <button class="file-card">
+                        <span class="file-card-icon">💻</span>
+                        <span>Code</span>
+                        <small>Folder</small>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
 
 
-<!-- MUSIC -->
+    <!-- NOTES -->
 
-<audio
-    id="audio"
-    loop
-    preload="none">
+    <section class="app-window" id="window-notes"
+             data-app="notes"
+             style="left: 16%; top: 15%; width: 700px; height: 500px;">
 
-    <source
-        src="assets/audio/music.mp3"
-        type="audio/mpeg">
+        <div class="window-titlebar">
 
-</audio>
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
 
+            <div class="window-title">
+                <span>📝</span>
+                Notes
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="notes-toolbar">
+
+            <button id="newNote">New</button>
+            <button id="saveNote">Save</button>
+
+            <span id="noteSaved">Saved locally</span>
+
+        </div>
+
+        <textarea id="notesArea"
+            placeholder="Start writing something..."></textarea>
+
+    </section>
+
+
+    <!-- BROWSER -->
+
+    <section class="app-window" id="window-browser"
+             data-app="browser"
+             style="left: 12%; top: 10%; width: 820px; height: 560px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                <span>🌐</span>
+                Browser
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="browser-toolbar">
+
+            <button id="browserBack">←</button>
+            <button id="browserForward">→</button>
+            <button id="browserReload">↻</button>
+
+            <input id="browserAddress"
+                   value="https://www.google.com"
+                   placeholder="Search or enter website">
+
+            <button id="browserGo">Go</button>
+
+        </div>
+
+        <div class="browser-home" id="browserHome">
+
+            <div class="browser-logo">
+                <span>N</span>
+            </div>
+
+            <h2>NikhilOS Browser</h2>
+
+            <p>
+                A tiny browser interface inside your little universe.
+            </p>
+
+            <div class="search-box">
+
+                <input id="browserSearch"
+                       placeholder="Search the web...">
+
+                <button id="browserSearchButton">
+                    Search
+                </button>
+
+            </div>
+
+            <div class="quick-links">
+
+                <button data-url="https://www.google.com">
+                    🔎 Google
+                </button>
+
+                <button data-url="https://github.com">
+                    💻 GitHub
+                </button>
+
+                <button data-url="https://www.youtube.com">
+                    ▶️ YouTube
+                </button>
+
+            </div>
+
+        </div>
+
+        <iframe
+            id="browserFrame"
+            class="browser-frame"
+            title="NikhilOS Browser"
+            loading="lazy">
+        </iframe>
+
+    </section>
+
+
+    <!-- CALCULATOR -->
+
+    <section class="app-window calculator-window" id="window-calculator"
+             data-app="calculator"
+             style="left: 32%; top: 17%; width: 360px; height: 540px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                <span>🧮</span>
+                Calculator
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="calculator">
+
+            <div class="calculator-display">
+                <span id="calcExpression"></span>
+                <strong id="calcResult">0</strong>
+            </div>
+
+            <div class="calculator-grid">
+
+                <button class="calc-special" data-calc="clear">AC</button>
+                <button class="calc-special" data-calc="back">⌫</button>
+                <button class="calc-special" data-calc="%">%</button>
+                <button class="calc-operation" data-calc="/">÷</button>
+
+                <button data-calc="7">7</button>
+                <button data-calc="8">8</button>
+                <button data-calc="9">9</button>
+                <button class="calc-operation" data-calc="*">×</button>
+
+                <button data-calc="4">4</button>
+                <button data-calc="5">5</button>
+                <button data-calc="6">6</button>
+                <button class="calc-operation" data-calc="-">−</button>
+
+                <button data-calc="1">1</button>
+                <button data-calc="2">2</button>
+                <button data-calc="3">3</button>
+                <button class="calc-operation" data-calc="+">+</button>
+
+                <button class="zero" data-calc="0">0</button>
+                <button data-calc=".">.</button>
+                <button class="calc-equals" data-calc="=">=</button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SETTINGS -->
+
+    <section class="app-window" id="window-settings"
+             data-app="settings"
+             style="left: 20%; top: 12%; width: 760px; height: 520px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                <span>⚙️</span>
+                Settings
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="settings-layout">
+
+            <aside class="settings-sidebar">
+
+                <button class="settings-tab active">
+                    🎨 Appearance
+                </button>
+
+                <button class="settings-tab">
+                    🔊 Sound
+                </button>
+
+                <button class="settings-tab">
+                    🖥️ Desktop
+                </button>
+
+                <button class="settings-tab">
+                    ℹ️ About
+                </button>
+
+            </aside>
+
+            <div class="settings-content">
+
+                <h2>Appearance</h2>
+
+                <p class="settings-description">
+                    Customize your NikhilOS experience.
+                </p>
+
+                <div class="setting-card">
+
+                    <div>
+                        <strong>Dark Universe</strong>
+                        <span>Keep the beautiful dark interface.</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" checked id="darkModeToggle">
+                        <span></span>
+                    </label>
+
+                </div>
+
+                <div class="setting-card">
+
+                    <div>
+                        <strong>Desktop Icons</strong>
+                        <span>Show icons on your desktop.</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" checked id="iconsToggle">
+                        <span></span>
+                    </label>
+
+                </div>
+
+                <h3>Wallpaper</h3>
+
+                <div class="wallpaper-grid">
+
+                    <button class="wallpaper-option wallpaper-one"
+                            data-wallpaper="one">
+                        Aurora
+                    </button>
+
+                    <button class="wallpaper-option wallpaper-two"
+                            data-wallpaper="two">
+                        Ocean
+                    </button>
+
+                    <button class="wallpaper-option wallpaper-three"
+                            data-wallpaper="three">
+                        Cosmic
+                    </button>
+
+                    <button class="wallpaper-option wallpaper-four"
+                            data-wallpaper="four">
+                        Sunset
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- GAMES -->
+
+    <section class="app-window" id="window-games"
+             data-app="games"
+             style="left: 15%; top: 10%; width: 800px; height: 570px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                <span>🎮</span>
+                NikhilOS Arcade
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="games-content">
+
+            <div class="game-heading">
+
+                <div>
+                    <span class="welcome-small">ARCADE</span>
+                    <h2>Mini Universe</h2>
+                    <p>Small games. Big vibes.</p>
+                </div>
+
+                <div class="game-score">
+                    <span>SCORE</span>
+                    <strong id="gameScore">0</strong>
+                </div>
+
+            </div>
+
+            <div class="game-area">
+
+                <div class="game-start" id="gameStart">
+
+                    <div class="game-controller">🎮</div>
+
+                    <h3>Catch the Star</h3>
+
+                    <p>
+                        Click the star as many times as you can.
+                    </p>
+
+                    <button class="primary-button" id="startGame">
+                        Start Game
+                    </button>
+
+                </div>
+
+                <button id="gameStar">★</button>
+
+            </div>
+
+            <div class="game-footer">
+
+                <span id="gameTimer">30 seconds</span>
+
+                <button class="secondary-button" id="resetGame">
+                    Reset
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ABOUT -->
+
+    <section class="app-window small-window" id="window-about"
+             data-app="about"
+             style="left: 35%; top: 24%; width: 430px; height: 360px;">
+
+        <div class="window-titlebar">
+
+            <div class="window-controls">
+                <button class="window-close">×</button>
+                <button class="window-minimize">−</button>
+                <button class="window-maximize">□</button>
+            </div>
+
+            <div class="window-title">
+                About NikhilOS
+            </div>
+
+            <div class="window-space"></div>
+
+        </div>
+
+        <div class="about-content">
+
+            <div class="about-logo">N</div>
+
+            <h2>NikhilOS</h2>
+
+            <p class="about-version">Version 1.0</p>
+
+            <p>
+                A personal little universe built with
+                HTML, CSS and JavaScript.
+            </p>
+
+            <div class="about-line"></div>
+
+            <span>Made with ❤️ by Nikhil</span>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= CONTROL CENTER ================= -->
+
+    <div class="control-center" id="controlCenter">
+
+        <div class="control-heading">
+            <strong>Control Center</strong>
+            <span>System</span>
+        </div>
+
+        <div class="control-grid">
+
+            <button class="control-tile active">
+                <span>📡</span>
+                <small>Wi-Fi</small>
+                <b>Connected</b>
+            </button>
+
+            <button class="control-tile" id="controlSound">
+                <span>🔊</span>
+                <small>Sound</small>
+                <b>On</b>
+            </button>
+
+            <button class="control-tile">
+                <span>🌙</span>
+                <small>Focus</small>
+                <b>Off</b>
+            </button>
+
+            <button class="control-tile">
+                <span>🔒</span>
+                <small>Security</small>
+                <b>Safe</b>
+            </button>
+
+        </div>
+
+        <div class="brightness">
+
+            <span>☀️</span>
+
+            <input type="range"
+                   id="brightnessSlider"
+                   min="50"
+                   max="120"
+                   value="100">
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= NOTIFICATION ================= -->
+
+    <div id="notification">
+
+        <div class="notification-icon">✨</div>
+
+        <div>
+            <strong id="notificationTitle">
+                NikhilOS
+            </strong>
+
+            <p id="notificationText">
+                Welcome back.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ================= DOCK ================= -->
+
+    <nav class="dock" id="dock">
+
+        <button class="dock-app" data-open="files">
+            <span>📁</span>
+            <label>Files</label>
+        </button>
+
+        <button class="dock-app" data-open="browser">
+            <span>🌐</span>
+            <label>Browser</label>
+        </button>
+
+        <button class="dock-app" data-open="notes">
+            <span>📝</span>
+            <label>Notes</label>
+        </button>
+
+        <button class="dock-app" data-open="calculator">
+            <span>🧮</span>
+            <label>Calculator</label>
+        </button>
+
+        <button class="dock-app" data-open="games">
+            <span>🎮</span>
+            <label>Games</label>
+        </button>
+
+        <div class="dock-divider"></div>
+
+        <button class="dock-app" data-open="settings">
+            <span>⚙️</span>
+            <label>Settings</label>
+        </button>
+
+    </nav>
+
+</div>
 
 <script src="script.js"></script>
 
